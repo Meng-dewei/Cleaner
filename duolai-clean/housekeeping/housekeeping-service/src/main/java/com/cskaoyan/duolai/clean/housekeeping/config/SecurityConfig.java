@@ -8,6 +8,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class SecurityConfig {
 
+    // md5针对指定的值，算出的密文字符串是固定的(彩虹表)
+    // BCrypt
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

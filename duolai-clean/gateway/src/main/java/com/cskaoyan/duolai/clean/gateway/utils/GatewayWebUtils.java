@@ -90,10 +90,12 @@ public class GatewayWebUtils {
      * @param headerName
      * @param headerValue
      */
-    public static void setRequestHeader(ServerWebExchange exchange, String headerName, String headerValue) {
-        exchange.mutate()
+    public static ServerWebExchange setRequestHeader(ServerWebExchange exchange, String headerName, String headerValue) {
+        ServerWebExchange serverWebExchange = exchange.mutate()
                 .request(builder -> builder.header(headerName, headerValue))
                 .build();
+
+        return serverWebExchange;
     }
 
     /**
