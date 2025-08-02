@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ILoginServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ILoginServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +133,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1754047630199</updated>
-      <workItem from="1754047631253" duration="40982000" />
+      <workItem from="1754047631253" duration="44091000" />
     </task>
     <servers />
   </component>

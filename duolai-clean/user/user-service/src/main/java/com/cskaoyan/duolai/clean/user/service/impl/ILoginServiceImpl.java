@@ -84,7 +84,10 @@ public class ILoginServiceImpl implements ILoginService {
             调用foundation服务wechatApi.getOpenId,  code换openId,
             如果未获取到则抛出异常throw new CommonException(ErrorInfo.Code.LOGIN_TIMEOUT, ErrorInfo.Msg.REQUEST_FAILD);
          */
-
+        OpenIdResDTO openIdResDTO = wechatApi.getOpenId(loginForCustomerCommand.getCode());
+        if(openIdResDTO == null){
+            throw new CommonException(ErrorInfo.Code.LOGIN_TIMEOUT, ErrorInfo.Msg.REQUEST_FAILD);
+        }
 
         /*
             根据openId查询用户信息commonUserService.findByOpenId，如果未从数据库查到，需要新增数据如下：
@@ -93,9 +96,20 @@ public class ILoginServiceImpl implements ILoginService {
             3. 设置nickName: "普通用户"+ RandomUtil.randomInt(10000,99999)
             4. 保存
          */
+        String openId = openIdResDTO.getOpenId();
+        CommonUserDO commonUserDO = commonUserService.findByOpenId(openId);
+        if(commonUserDO == null){
+            commonUserDO = commonUserConverter.loginForCustomerCommandToCommonUserDO(loginForCustomerCommand);
+            commonUserDO.setOpenId(openId);
+            commonUserDO.setNickname("普通用户"+ RandomUtil.randomInt(10000,99999));
+            commonUserService.save(commonUserDO);
+        }
 
         //根据用户信息构建token，userType为UserType.C_USER
+        String token = jwtTool.createToken(commonUserDO.getId(), commonUserDO.getNickname(), commonUserDO.getAvatar(),UserType.C_USER);
 
-        return null;
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setToken(token);
+        return loginDTO;
     }
 }
