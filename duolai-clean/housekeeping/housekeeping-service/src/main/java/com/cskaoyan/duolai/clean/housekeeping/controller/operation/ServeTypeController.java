@@ -77,6 +77,7 @@ public class ServeTypeController {
         服务类型分页查询
      */
     @GetMapping("/page")
+    @ApiOperation("服务类型分页查询")
     public PageDTO<ServeTypeDTO> page(ServeTypePageRequest serveTypePageRequest) {
         return serveTypeService.getPage(serveTypePageRequest);
     }

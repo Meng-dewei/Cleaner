@@ -1,6 +1,7 @@
 package com.cskaoyan.duolai.clean.thirdparty.core.map;
 
 import com.cskaoyan.duolai.clean.thirdparty.dto.MapLocationDTO;
+import org.springframework.stereotype.Service;
 
 public interface MapService {
     /**

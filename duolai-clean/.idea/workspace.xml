@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d601bd9a-f553-4ac7-9a18-34c5e1fa2c1d" name="Changes" comment="" />
+    <list default="true" id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/foundation/foundation-service/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/foundation/foundation-service/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/third-party/src/main/java/com/cskaoyan/duolai/clean/thirdparty/core/map/MapService.java" beforeDir="false" afterPath="$PROJECT_DIR$/framework/third-party/src/main/java/com/cskaoyan/duolai/clean/thirdparty/core/map/MapService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/controller/operation/ServeTypeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/controller/operation/ServeTypeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServiceImpl.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -23,16 +31,17 @@
       </MavenGeneralSettings>
     </option>
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 4
-}</component>
-  <component name="ProjectId" id="30dmwAeipiOifZRSG6FUjoatpiu" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 4
+}]]></component>
+  <component name="ProjectId" id="30gSGykJ1uPmq20sZTcbFLjvNX9" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Maven.foundation [clean].executor": "Run",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
@@ -42,7 +51,7 @@
     "Spring Boot.FoundationApplication.executor": "Run",
     "Spring Boot.GatewayApplication.executor": "Run",
     "Spring Boot.HouseKeepingServiceApplication.executor": "Run",
-    "git-widget-placeholder": "dev",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "E:/Cleaner/Cleaner/duolai-clean",
@@ -65,7 +74,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.GatewayApplication">
+  <component name="RunManager" selected="Spring Boot.HouseKeepingServiceApplication">
     <configuration name="FoundationApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="foundation-service" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.cskaoyan.duolai.clean.foundation.FoundationApplication" />
@@ -101,21 +110,20 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.GatewayApplication" />
         <item itemvalue="Spring Boot.HouseKeepingServiceApplication" />
+        <item itemvalue="Spring Boot.GatewayApplication" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="d601bd9a-f553-4ac7-9a18-34c5e1fa2c1d" name="Changes" comment="" />
-      <created>1753966059803</created>
+      <changelist id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="" />
+      <created>1754047630199</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1753966059803</updated>
-      <workItem from="1753966061100" duration="316000" />
-      <workItem from="1754018198154" duration="5992000" />
+      <updated>1754047630199</updated>
+      <workItem from="1754047631253" duration="19911000" />
     </task>
     <servers />
   </component>

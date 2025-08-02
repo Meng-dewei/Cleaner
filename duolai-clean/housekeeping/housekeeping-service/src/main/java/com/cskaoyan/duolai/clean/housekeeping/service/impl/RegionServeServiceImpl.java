@@ -2,7 +2,9 @@ package com.cskaoyan.duolai.clean.housekeeping.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,6 +21,7 @@ import com.cskaoyan.duolai.clean.housekeeping.service.IHomeService;
 import com.cskaoyan.duolai.clean.housekeeping.service.IRegionServeService;
 import com.cskaoyan.duolai.clean.mysql.utils.PageUtils;
 import com.cskaoyan.duolai.clean.redis.constants.RedisConstants;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -29,8 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -60,43 +64,98 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
 
     @Override
     public PageDTO<RegionServeDTO> getPage(ServePageRequest servePageQueryReqDTO) {
-
-        return null;
+        Page<RegionServeDO> regionServe2Page = PageUtils.parsePageQuery(servePageQueryReqDTO, RegionServeDO.class);
+        Page<RegionServeDO> regionServeDOPage = regionServeMapper.queryRegionServeListByRegionId(servePageQueryReqDTO.getRegionId(), regionServe2Page);
+        if (PageUtils.isEmpty(regionServeDOPage))
+        {
+            throw new ForbiddenOperationException("数据为空");
+        }
+        List<RegionServeDTO> dtos = regionServeConverter.regionServeDOsToRegionServeDTOs(regionServeDOPage.getRecords());
+        return PageUtils.toPage(regionServeDOPage, dtos);
     }
-
 
 
     @Override
     public void batchAdd(List<RegionServeCommand> regionServeCommandList) {
+        for (RegionServeCommand regionServeCommand : regionServeCommandList) {
+            LambdaQueryWrapper<RegionDO> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(RegionDO::getId, regionServeCommand.getRegionId());
 
+            RegionDO regionDO = regionMapper.selectOne(queryWrapper);
+            String cityCode = regionDO.getCityCode();
+            RegionServeDO regionServeDO = new RegionServeDO();
+            regionServeDO.setServeItemId(regionServeCommand.getServeItemId());
+            regionServeDO.setRegionId(regionServeCommand.getRegionId());
+            regionServeDO.setCityCode(cityCode);
+            regionServeDO.setPrice(regionServeCommand.getPrice());
+
+            baseMapper.insert(regionServeDO);
+        }
     }
 
     @Override
     public RegionServeDetailDTO updatePrice(Long id, Long regionId, BigDecimal price) {
+        LambdaUpdateWrapper<RegionServeDO> updateWrapper = Wrappers.<RegionServeDO>lambdaUpdate()
+                .eq(RegionServeDO::getId, id)
+                .eq(RegionServeDO::getRegionId, regionId)
+                .set(RegionServeDO::getPrice, price);
+        update(updateWrapper);
 
         return null;
     }
 
     @Override
-    public List<RegionServeDetailDTO> changeHotStatus(Long id, Long regionId,  Integer flag) {
-
+    public List<RegionServeDetailDTO> changeHotStatus(Long id, Long regionId, Integer flag) {
+        LambdaUpdateWrapper<RegionServeDO> updateWrapper = Wrappers.<RegionServeDO>lambdaUpdate()
+                .eq(RegionServeDO::getId, id)
+                .eq(RegionServeDO::getRegionId, regionId)
+                .set(RegionServeDO::getIsHot, flag)
+                .set(RegionServeDO::getHotTimeStamp, System.currentTimeMillis());
+        update(updateWrapper);
         return null;
     }
 
     @Override
     public int queryServeCountByRegionIdAndSaleStatus(Long regionId, Integer saleStatus) {
+        QueryWrapper<RegionServeDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("region_id", regionId);
 
-        return 0;
+        if (saleStatus != null) {
+            queryWrapper.eq("sale_status", saleStatus);
+        }
+
+        return (int) count(queryWrapper);
     }
 
     @Override
     public int queryServeCountByServeItemIdAndSaleStatus(Long serveItemId, Integer saleStatus) {
+        QueryWrapper<RegionServeDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("serve_item_id", serveItemId);
 
-        return 0;
+        if (saleStatus != null) {
+            queryWrapper.eq("sale_status", saleStatus);
+        }
+
+        long count = count(queryWrapper);
+        if (count > Integer.MAX_VALUE) {
+            throw new ForbiddenOperationException("服务数量超过最大限制");
+        }
+        return (int) count;
     }
 
     @Override
     public void deleteById(Long id) {
+        RegionServeDO regionServeDO = baseMapper.selectById(id);
+        if(ObjectUtil.isNull(regionServeDO)){
+            throw new ForbiddenOperationException("区域服务信息不存在");
+        }
+
+        Integer activeSataus = regionServeDO.getSaleStatus();
+        if (HousekeepingStatusEnum.INIT.getStatus() != activeSataus) {
+            throw new ForbiddenOperationException("草稿状态方可删除");
+        }
+
+        baseMapper.deleteById(id);
     }
 
     @Override
@@ -105,7 +164,7 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     }
 
     public RegionServeDetailDTO findDetailByIdDb(Long id) {
-      return null;
+        return null;
     }
 
     @Autowired
@@ -139,22 +198,66 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     @Override
     @Transactional
     public RegionServeDetailDTO onSale(Long id) {
+        RegionServeDO regionServe = regionServeMapper.selectById(id);
+        if (regionServe == null) {
+            throw new ForbiddenOperationException("区域服务项不存在");
+        }
 
+        ServeDetailDO serveDetail = regionServeMapper.findServeDetailById(id);
+        if (serveDetail == null) {
+            throw new ForbiddenOperationException("服务详情不存在");
+        }
 
-        return findDetailByIdDb(id);
+        ServeItemDO serveItem = serveItemMapper.selectById(serveDetail.getServeItemId());
+        if (serveItem == null || serveItem.getActiveStatus() != 2) {
+            throw new ForbiddenOperationException("服务项未启用，无法上架");
+        }
+
+        ServeTypeDO serveType = serveTypeMapper.selectById(serveDetail.getServeTypeId());
+        if (serveType == null || serveType.getActiveStatus() != 2) {
+            throw new ForbiddenOperationException("服务类型未启用，无法上架");
+        }
+
+        RegionDO region = regionMapper.selectById(regionServe.getRegionId());
+        if (region == null || region.getActiveStatus() != 2) {
+            throw new ForbiddenOperationException("区域未启用，无法上架服务");
+        }
+
+        if (regionServe.getSaleStatus() != 0 && regionServe.getSaleStatus() != 1) {
+            throw new ForbiddenOperationException("只有草稿或下架状态的区域服务项才能上架");
+        }
+
+        RegionServeDO updateEntity = new RegionServeDO();
+        updateEntity.setId(id);
+        updateEntity.setSaleStatus(2);
+        regionServeMapper.updateById(updateEntity);
+
+        return null;
     }
 
 
     @Override
     @Transactional
     public RegionServeDTO offSale(Long id) {
+        RegionServeDO regionServe = regionServeMapper.selectById(id);
+        if (regionServe == null) {
+            throw new ForbiddenOperationException("区域服务项不存在");
+        }
+        if (regionServe.getSaleStatus() != 2) {
+            throw new ForbiddenOperationException("只有上架状态的区域服务项才能下架");
+        }
 
+        RegionServeDO updateEntity = new RegionServeDO();
+        updateEntity.setId(id);
+        updateEntity.setSaleStatus(1);
+
+        regionServeMapper.updateById(updateEntity);
 
         return null;
     }
 
     @Override
     public ServeDetailDTO findServeDetailById(Long id) {
-         return null;
+        return null;
     }
 }
