@@ -97,7 +97,7 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     public RegionServeDetailDTO updatePrice(Long id, Long regionId, BigDecimal price) {
         LambdaUpdateWrapper<RegionServeDO> updateWrapper = Wrappers.<RegionServeDO>lambdaUpdate()
                 .eq(RegionServeDO::getId, id)
-                .eq(RegionServeDO::getRegionId, regionId)
+//                .eq(RegionServeDO::getRegionId, regionId)
                 .set(RegionServeDO::getPrice, price);
         update(updateWrapper);
 

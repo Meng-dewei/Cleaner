@@ -13,7 +13,7 @@
         <module>gateway</module>
         <module>housekeeping</module>
         <module>foundation</module>
-<!--        <module>user</module>-->
+        <module>user</module>
 <!--        <module>market</module>-->
 <!--        <module>order</module>-->
 <!--        <module>order-dispatch</module>-->
