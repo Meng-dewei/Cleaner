@@ -17,7 +17,7 @@
         FROM
         serve_provider AS provider
         LEFT JOIN serve_provider_settings AS setting ON setting.id = provider.id
-        LEFT JOIN worker_certification AS certification ON certification.id = provider.id
+        LEFT JOIN worker_certification AS certification ON serve_provider_id = provider.id
         <where>
             certification.certification_status = 2
             <if test="pageRequest.name !=null and pageRequest.name !=''">

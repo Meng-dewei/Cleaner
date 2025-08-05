@@ -171,7 +171,11 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
      */
     @Override
     public List<RegionSimpleDTO> queryActiveRegionListDb() {
-        return null;
+        LambdaQueryWrapper<RegionDO> queryWrapper = Wrappers.<RegionDO>lambdaQuery()
+                .eq(RegionDO::getActiveStatus, HousekeepingStatusEnum.ENABLE.getStatus())
+                .orderByAsc(RegionDO::getSortNum);
+        List<RegionDO> regionDOList = baseMapper.selectList(queryWrapper);
+        return regionConverter.regionDOsToRegionSimpleDTOs(regionDOList);
     }
 
     /**
@@ -180,6 +184,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
      * @param id 区域id
      */
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.REGION_CACHE, key = "'ACTIVE_REGIONS'")
     public List<RegionSimpleDTO> active(Long id) {
         //区域信息
         RegionDO regionDO = baseMapper.selectById(id);
@@ -199,7 +204,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
                 .set(RegionDO::getActiveStatus, HousekeepingStatusEnum.ENABLE.getStatus());
         update(updateWrapper);
 
-        return null;
+        return queryActiveRegionListDb();
     }
 
     /**
@@ -208,6 +213,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
      * @param id 区域id
      */
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.REGION_CACHE, key = "'ACTIVE_REGIONS'")
     public List<RegionSimpleDTO> deactivate(Long id) {
         //区域信息
         RegionDO regionDO = baseMapper.selectById(id);
@@ -235,7 +241,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
                 .set(RegionDO::getActiveStatus, HousekeepingStatusEnum.DISABLE.getStatus());
         update(updateWrapper);
 
-        return null;
+        return queryActiveRegionListDb();
     }
 
     /**
@@ -244,8 +250,9 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
      * @return 区域简略列表
      */
     @Override
+    @Cacheable(cacheNames = RedisConstants.CacheName.REGION_CACHE, key = "'ACTIVE_REGIONS'")
     public List<RegionSimpleDTO> queryActiveRegionListCache() {
-        return null;
+        return regionService.queryActiveRegionListDb();
     }
 
 

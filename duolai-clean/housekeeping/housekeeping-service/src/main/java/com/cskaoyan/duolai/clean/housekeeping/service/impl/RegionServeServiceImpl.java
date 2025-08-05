@@ -94,6 +94,10 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     }
 
     @Override
+    @Caching(
+            put = {@CachePut(cacheNames = RedisConstants.CacheName.REGION_SERVE_DETAIL, key = "#id")},
+            evict = {@CacheEvict(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#regionId")}
+    )
     public RegionServeDetailDTO updatePrice(Long id, Long regionId, BigDecimal price) {
         LambdaUpdateWrapper<RegionServeDO> updateWrapper = Wrappers.<RegionServeDO>lambdaUpdate()
                 .eq(RegionServeDO::getId, id)
@@ -101,10 +105,11 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
                 .set(RegionServeDO::getPrice, price);
         update(updateWrapper);
 
-        return null;
+        return findDetailByIdDb(id);
     }
 
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#regionId")
     public List<RegionServeDetailDTO> changeHotStatus(Long id, Long regionId, Integer flag) {
         LambdaUpdateWrapper<RegionServeDO> updateWrapper = Wrappers.<RegionServeDO>lambdaUpdate()
                 .eq(RegionServeDO::getId, id)
@@ -112,7 +117,7 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
                 .set(RegionServeDO::getIsHot, flag)
                 .set(RegionServeDO::getHotTimeStamp, System.currentTimeMillis());
         update(updateWrapper);
-        return null;
+        return findHotServeListByRegionId(regionId);
     }
 
     @Override
@@ -159,12 +164,30 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     }
 
     @Override
+    @Cacheable(cacheNames = RedisConstants.CacheName.REGION_SERVE_DETAIL, key = "#id")
     public RegionServeDetailDTO findDetailByIdCache(Long id) {
-        return null;
+        RegionServeDetailDTO detailByIdDb = findDetailByIdDb(id);
+        if (detailByIdDb == null) {
+            return new RegionServeDetailDTO();
+        }
+
+        return detailByIdDb;
     }
 
     public RegionServeDetailDTO findDetailByIdDb(Long id) {
-        return null;
+        // 1. 查询区域服务项
+        RegionServeDO regionServeDO = regionServeMapper.selectById(id);
+
+        // 2. 判断区域的状态，如果使禁用状态，返回空集合
+        RegionDO regionDO = regionMapper.selectById(regionServeDO.getRegionId());
+        if (HousekeepingStatusEnum.DISABLE.getStatus() == regionDO.getActiveStatus()) {
+            return new RegionServeDetailDTO();
+        }
+
+        // 3. 查询区域服务详情
+        RegionServeDetailDO regionServeDetail = regionServeMapper.findRegionServeDetail(id);
+
+        return regionServeConverter.regionServeDetailDO2DTO(regionServeDetail);
     }
 
     @Autowired
@@ -187,14 +210,43 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
 
     @Override
     public List<RegionServeDetailDTO> findHotServeListByRegionId(Long regionId) {
-        return null;
+        // 1. 是否是已启用的区域
+        RegionDO regionDO = regionMapper.selectById(regionId);
+        if (HousekeepingStatusEnum.DISABLE.getStatus() == regionDO.getActiveStatus()) {
+            return Collections.emptyList();
+        }
+
+        // 2. 查询精选推荐列表
+        List<RegionServeDetailDO> hotServeListByRegionId = regionServeMapper.findHotServeListByRegionId(regionId);
+
+        return regionServeConverter.regionServeDetailDOs2DTOs(hotServeListByRegionId);
     }
 
     @Override
     public List<DisplayServeTypeDTO> findServeTypeListByRegionId(Long regionId) {
-        return null;
+        // 1. 是否是已启用的区域
+        RegionDO regionDO = regionMapper.selectById(regionId);
+        if (HousekeepingStatusEnum.DISABLE.getStatus() == regionDO.getActiveStatus()) {
+            return Collections.emptyList();
+        }
+
+        // 2. 查询区域下的类型信息
+        List<ServeTypeDO> serveTypeListByRegionId = regionServeMapper.findServeTypeListByRegionId(regionId);
+
+        if (serveTypeListByRegionId == null) {
+            return Collections.emptyList();
+        }
+        return regionServeConverter.serveTypeDOsToFirstPageServeTypeDTOs(serveTypeListByRegionId);
     }
 
+    @Caching(
+            put = {@CachePut(cacheNames = RedisConstants.CacheName.REGION_SERVE_DETAIL, key = "#id")},
+            evict = {
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.FIRST_PAGE_PARTIAL_SERVE_CACHE, key = "#result.regionId"),
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#result.regionId"),
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.REGION_SERVE_TYPE, key = "#result.regionId")
+            }
+    )
     @Override
     @Transactional
     public RegionServeDetailDTO onSale(Long id) {
@@ -232,10 +284,18 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
         updateEntity.setSaleStatus(2);
         regionServeMapper.updateById(updateEntity);
 
-        return null;
+        return findDetailByIdDb(id);
     }
 
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.REGION_SERVE_DETAIL, key = "#id"),
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#result.regionId"),
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.FIRST_PAGE_PARTIAL_SERVE_CACHE, key = "#result.regionId"),
+                    @CacheEvict(cacheNames = RedisConstants.CacheName.REGION_SERVE_TYPE, key = "#result.regionId")
+            }
+    )
     @Override
     @Transactional
     public RegionServeDTO offSale(Long id) {
@@ -253,7 +313,8 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
 
         regionServeMapper.updateById(updateEntity);
 
-        return null;
+        RegionServeDO regionServeDO = baseMapper.selectById(id);
+        return regionServeConverter.regionServeDOToRegionServeDTO(regionServeDO);
     }
 
     @Override

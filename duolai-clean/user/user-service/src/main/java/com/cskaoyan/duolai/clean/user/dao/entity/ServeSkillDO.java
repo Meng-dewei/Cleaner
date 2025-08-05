@@ -68,6 +68,6 @@ public class ServeSkillDO implements Serializable {
     /**
      * 是否已删除，0：未删除，1：已删除
      */
-    @TableField(exist = false)
-    private Integer isDelete;
+//    @TableField(exist = false)
+//    private Integer isDelete;
 }

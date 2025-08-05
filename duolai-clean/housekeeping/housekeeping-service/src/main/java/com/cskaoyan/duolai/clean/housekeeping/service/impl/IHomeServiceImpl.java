@@ -2,6 +2,8 @@ package com.cskaoyan.duolai.clean.housekeeping.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.cskaoyan.duolai.clean.housekeeping.converter.RegionServeConverter;
+import com.cskaoyan.duolai.clean.housekeeping.dao.entity.HomeRegionServeSimpleDO;
+import com.cskaoyan.duolai.clean.housekeeping.dao.mapper.RegionMapper;
 import com.cskaoyan.duolai.clean.housekeeping.dto.RegionSimpleDTO;
 import com.cskaoyan.duolai.clean.housekeeping.enums.HousekeepingStatusEnum;
 import com.cskaoyan.duolai.clean.housekeeping.dao.mapper.RegionServeMapper;
@@ -18,6 +20,7 @@ import com.cskaoyan.duolai.clean.housekeeping.service.IServeItemService;
 import com.cskaoyan.duolai.clean.redis.constants.RedisConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,8 @@ public class IHomeServiceImpl implements IHomeService {
     private RegionServeMapper serveMapper;
     @Resource
     RegionServeConverter regionServeConverter;
+    @Autowired
+    RegionMapper regionMapper;
 
 
     /**
@@ -51,6 +56,7 @@ public class IHomeServiceImpl implements IHomeService {
      * @return 服务图标列表
      */
     @Override
+    @Cacheable(cacheNames = RedisConstants.CacheName.FIRST_PAGE_PARTIAL_SERVE_CACHE, key = "#regionId")
     public List<ServeTypeHomeDTO> queryServeIconCategoryByRegionIdCache(Long regionId) {
         List<ServeTypeHomeDTO> serveTypeHomeDTOS = queryServeIconCategoryByRegionIdDb(regionId);
         if (serveTypeHomeDTOS == null) {
@@ -59,9 +65,34 @@ public class IHomeServiceImpl implements IHomeService {
         return serveTypeHomeDTOS;
     }
 
+    // 从数据库中查询首页服务列表的方法
     public List<ServeTypeHomeDTO> queryServeIconCategoryByRegionIdDb(Long regionId) {
+        // 1. 判断目标区域是否已启用
+        RegionDO regionDO = regionMapper.selectById(regionId);
+        if (HousekeepingStatusEnum.DISABLE.getStatus() == regionDO.getActiveStatus()) {
+            // 返回空列表
+            return Collections.emptyList();
+        }
 
-        return null;
+        // 2. 查询区域服务列表
+        List<ServeTypeHomeDO> serveIconCategory = serveMapper.findServeIconCategoryByRegionId(regionId);
+
+        // 3. 对数据库中的数据裁剪
+        int serveTypeSize = serveIconCategory.size() > 2 ?  2 : serveIconCategory.size();
+        List<ServeTypeHomeDO> serveTypeHomes = serveIconCategory.subList(0, serveTypeSize);
+        // 3.1 裁剪类型
+        List<ServeTypeHomeDO> resultTypes = new ArrayList<>(serveTypeHomes);
+        resultTypes.forEach(serveTypeHomeDO -> {
+            // 获取包含的服务项集合
+            List<HomeRegionServeSimpleDO> serveResDTOList = serveTypeHomeDO.getServeResDTOList();
+
+            // 裁剪服务项
+            int serveItemSize = serveResDTOList.size() > 4 ? 4 : serveResDTOList.size();
+            List<HomeRegionServeSimpleDO> itemReulst = new ArrayList<>(serveResDTOList.subList(0, serveItemSize));
+            serveTypeHomeDO.setServeResDTOList(itemReulst);
+        });
+
+        return regionServeConverter.serveTypeHomeDOsToDTOs(resultTypes);
     }
 
 
@@ -72,9 +103,15 @@ public class IHomeServiceImpl implements IHomeService {
      * @return 服务列表
      */
     @Override
+    @Cacheable(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#regionId")
     public List<RegionServeDetailDTO> findHotServeListByRegionIdCache(Long regionId) {
+        List<RegionServeDetailDTO> hotServeListByRegionId = serveService.findHotServeListByRegionId(regionId);
 
-        return null;
+        if (hotServeListByRegionId == null) {
+            return Collections.emptyList();
+        }
+
+        return hotServeListByRegionId;
     }
 
 
@@ -85,16 +122,14 @@ public class IHomeServiceImpl implements IHomeService {
      * @return 已开通的服务类型
      */
     @Override
+    @Cacheable(cacheNames = RedisConstants.CacheName.REGION_SERVE_TYPE, key = "#regionId")
     public List<DisplayServeTypeDTO> queryServeTypeListByRegionIdCache(Long regionId) {
-       return null;
+        List<DisplayServeTypeDTO> displayServeTypeDTOS = queryServeTypeListByRegionIdDb(regionId);
+        return displayServeTypeDTOS;
     }
 
     public List<DisplayServeTypeDTO> queryServeTypeListByRegionIdDb(Long regionId) {
-
-        return null;
+        return serveService.findServeTypeListByRegionId(regionId);
     }
-
-
-
 
 }
