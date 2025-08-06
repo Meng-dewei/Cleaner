@@ -44,6 +44,9 @@ public class RegionServeInfo {
     @Field(type = FieldType.Keyword)
     private String serveItemSortNum;
 
+    @Field(type = FieldType.Keyword)
+    private String serveTypeId;
+
     @Field(type = FieldType.Text, index = false)
     private String serveTypeIcon;
 

@@ -150,6 +150,7 @@
             region_serve.id,
             region_serve.city_code,
             region_serve.price,
+            region_serve.region_id,
             item.id AS serve_item_id,
             item.`name` AS serve_item_name,
             item.img AS serve_item_img,

@@ -46,13 +46,13 @@ public interface RegionServeRepository extends ElasticsearchRepository<RegionSer
                      },
                      {
                         "term" : {
-                           "serveTypeName" :"?1"
+                           "serveTypeId" :"?1"
                         }
                      }
                   ]
                }
             }
            """)
-    List<RegionServeInfo> searchRegionServeInfoByServeType(String cityCode, String typeName, Sort sort);
+    List<RegionServeInfo> searchRegionServeInfoByServeType(String cityCode, String typeId, Sort sort);
 
 }

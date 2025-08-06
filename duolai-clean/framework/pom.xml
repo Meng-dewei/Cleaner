@@ -15,7 +15,7 @@
     <modules>
         <module>common</module>
         <module>redis</module>
-<!--        <module>mq</module>-->
+        <module>mq</module>
         <module>canal-sync</module>
         <module>third-party</module>
         <module>mvc</module>

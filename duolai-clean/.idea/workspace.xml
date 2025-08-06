@@ -5,12 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/IHomeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/IHomeServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/canal-sync/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/framework/canal-sync/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/common/src/main/java/com/cskaoyan/duolai/clean/common/model/RegionServeInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/framework/common/src/main/java/com/cskaoyan/duolai/clean/common/model/RegionServeInfo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/framework/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/dao/repository/RegionServeRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/dao/repository/RegionServeRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/FirstPageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/FirstPageServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/dao/entity/ServeSkillDO.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/dao/entity/ServeSkillDO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/resources/mapper/ServeProviderMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/resources/mapper/ServeProviderMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/resources/mapper/RegionServeMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/resources/mapper/RegionServeMapper.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +44,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Maven.duolai-clean [clean].executor&quot;: &quot;Run&quot;,
     &quot;Maven.foundation [clean].executor&quot;: &quot;Run&quot;,
     &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
     &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
@@ -54,7 +59,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/Cleaner/Cleaner/duolai-clean&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Cleaner/Cleaner/duolai-clean/framework&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -65,6 +70,12 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\framework" />
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\housekeeping\housekeeping-service\src\main\java\com\cskaoyan\duolai\clean\housekeeping" />
+    </key>
+  </component>
   <component name="RunDashboard">
     <option name="configurationTypes">
       <set>
@@ -123,9 +134,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.UserServiceApplicaiton" />
         <item itemvalue="Spring Boot.HouseKeepingServiceApplication" />
         <item itemvalue="Spring Boot.GatewayApplication" />
+        <item itemvalue="Spring Boot.UserServiceApplicaiton" />
       </list>
     </recent_temporary>
   </component>
@@ -138,7 +149,8 @@
       <option name="presentableId" value="Default" />
       <updated>1754047630199</updated>
       <workItem from="1754047631253" duration="45483000" />
-      <workItem from="1754269028368" duration="12481000" />
+      <workItem from="1754269028368" duration="32347000" />
+      <workItem from="1754442152083" duration="1130000" />
     </task>
     <servers />
   </component>

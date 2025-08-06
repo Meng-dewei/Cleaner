@@ -28,8 +28,20 @@ public class FirstPageServiceImpl implements IFirstPageService {
     RegionServeConverter regionServeConverter;
     @Override
     public List<SearchRegionServeDTO> findServeList(String cityCode, Long serveTypeId, String keyword) {
+        Sort by = Sort.by(Sort.Direction.ASC, "serveItemSortNum");
+        List<RegionServeInfo> regionServeInfos = null;
+        if (serveTypeId != null) {
+            regionServeInfos = regionServeRepository.searchRegionServeInfoByServeType(cityCode, serveTypeId.toString(), by);
+        } else {
+            regionServeInfos = regionServeRepository.searchRegionServeInfo(cityCode, keyword, by);
+        }
 
-        return null;
+        if (CollectionUtils.isEmpty(regionServeInfos)) {
+            return Collections.emptyList();
+        }
+
+        List<SearchRegionServeDTO> searchRegionServeDTOS = regionServeConverter.regionServeInfosToFirstPageRegionServeDTOs(regionServeInfos);
+        return searchRegionServeDTOS;
     }
 
 

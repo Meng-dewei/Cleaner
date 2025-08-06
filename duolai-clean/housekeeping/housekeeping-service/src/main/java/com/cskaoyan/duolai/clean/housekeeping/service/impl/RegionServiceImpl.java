@@ -59,14 +59,23 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
     @Resource
     private CityDirectoryMapper cityDirectoryMapper;
 
+    @Autowired
+    RegionServeMapper regionServeMapper;
+
     @Resource
     RegionConverter regionConverter;
+
+    @Autowired
+    RegionServeConverter regionServeConverter;
 
     @Resource
     IRegionServeService regionServeService;
 
     @Resource
     IRegionService regionService;
+
+    @Autowired
+    RedissonClient redissonClient;
 
 
     /**
@@ -114,7 +123,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
     @Override
     public void update(Long id, String managerName, String managerPhone) {
         RegionDO oldReginDo = baseMapper.selectById(id);
-        if(ObjectUtil.isNull(oldReginDo)){
+        if (ObjectUtil.isNull(oldReginDo)) {
             throw new ForbiddenOperationException("服务信息不存在");
         }
         // 草稿状态才能改
@@ -188,13 +197,13 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
     public List<RegionSimpleDTO> active(Long id) {
         //区域信息
         RegionDO regionDO = baseMapper.selectById(id);
-        if(ObjectUtil.isNull(regionDO)){
+        if (ObjectUtil.isNull(regionDO)) {
             throw new ForbiddenOperationException("区域不存在");
         }
 
         //草稿或禁用状态方可启用
         Integer activeStatus = regionDO.getActiveStatus();
-        if(!(HousekeepingStatusEnum.INIT.getStatus() == activeStatus || HousekeepingStatusEnum.DISABLE.getStatus() == activeStatus)){
+        if (!(HousekeepingStatusEnum.INIT.getStatus() == activeStatus || HousekeepingStatusEnum.DISABLE.getStatus() == activeStatus)) {
             throw new ForbiddenOperationException("草稿或禁用状态方可启用");
         }
 
@@ -217,13 +226,13 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
     public List<RegionSimpleDTO> deactivate(Long id) {
         //区域信息
         RegionDO regionDO = baseMapper.selectById(id);
-        if(ObjectUtil.isNull(regionDO)){
+        if (ObjectUtil.isNull(regionDO)) {
             throw new ForbiddenOperationException("区域不存在");
         }
 
         //启用状态方可禁用
         Integer activeStatus = regionDO.getActiveStatus();
-        if(!(HousekeepingStatusEnum.ENABLE.getStatus() == activeStatus)){
+        if (!(HousekeepingStatusEnum.ENABLE.getStatus() == activeStatus)) {
             throw new ForbiddenOperationException("启用状态方可禁用");
         }
 
@@ -231,7 +240,7 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
         LambdaQueryWrapper<RegionServeDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(RegionServeDO::getRegionId, id);
         Long count = regionServeService.count(queryWrapper);
-        if(count > 0){
+        if (count > 0) {
             throw new ForbiddenOperationException("禁用失败，该区域下有有上架的服务则无法禁用");
         }
 
@@ -266,7 +275,51 @@ public class RegionServiceImpl extends ServiceImpl<RegionMapper, RegionDO> imple
      */
     @Override
     public void refreshRegionRelateCaches(Long regionId) {
+        // 1. 首页服务列表缓存
+        regionServeService.refreshFirstPageRegionServeList(regionId);
 
+        // 2. 精选推荐列表
+        regionServeService.refreshFistPageHotServeList(regionId);
+
+        // 3. 服务类型列表
+        regionServeService.refreshFirstPageServeTypeList(regionId);
+
+        // 4. 区域服务详情
+
+        // 4.1 从数据库中查询最新的区域服务详情列表
+        List<RegionServeDetailDO> regionServeDetailByRegionId
+                = regionServeMapper.findRegionServeDetailByRegionId(regionId);
+
+        List<Long> dbDetailIds = regionServeDetailByRegionId.stream().map(regionServeDetailDO -> regionServeDetailDO.getId()).collect(Collectors.toList());
+
+
+        // 4.2 获取缓存中的区域服务数据
+        RMap<Long, RegionServeDetailDTO> detailMap
+                = redissonClient.getMap(RedisConstants.CacheName.REGION_SERVE_DETAIL);
+
+        // 根据区域过滤出只属于目标区域的区域服务项
+        Map<Long, RegionServeDetailDTO> regionDetailMap = detailMap.entrySet().stream().filter(entry -> {
+            RegionServeDetailDTO value = entry.getValue();
+            return value.getRegionId() != null && value.getRegionId().equals(regionId);
+        }).collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+
+
+        // 4.3 针对数据库没有，缓存中有的数据(将数据库中已经下架的区域服务项从缓存中删除)
+        List<Long> toDeleteIds = regionDetailMap.keySet().stream()
+                .filter(cacheDetailId -> !dbDetailIds.contains(cacheDetailId)).collect(Collectors.toList());
+
+        // 4.4 删除缓存中待删除的区域服务详情
+        toDeleteIds.forEach(id -> {
+            detailMap.remove(id);
+        });
+
+
+        // 4.5 用数据库中最新的区域服务详情数据，更新缓存
+        regionServeDetailByRegionId.forEach(regionServeDetailDO -> {
+            RegionServeDetailDTO regionServeDetailDTO
+                    = regionServeConverter.regionServeDetailDO2DTO(regionServeDetailDO);
+            detailMap.put(regionServeDetailDTO.getId(), regionServeDetailDTO);
+        });
     }
 
 }

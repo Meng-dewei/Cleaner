@@ -105,6 +105,12 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
                 .set(RegionServeDO::getPrice, price);
         update(updateWrapper);
 
+        // 更新价格
+        RegionServeSyncDO regionServeSyncDO = new RegionServeSyncDO();
+        regionServeSyncDO.setId(id);
+        regionServeSyncDO.setPrice(price);
+        serveSyncMapper.updateById(regionServeSyncDO);
+
         return findDetailByIdDb(id);
     }
 
@@ -194,16 +200,19 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
     IHomeService iHomeService;
 
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.FIRST_PAGE_PARTIAL_SERVE_CACHE, key = "#regionId")
     public List<ServeTypeHomeDTO> refreshFirstPageRegionServeList(Long regionId) {
         return iHomeService.queryServeIconCategoryByRegionIdDb(regionId);
     }
 
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.FIRST_PAGE_HOT_SERVE, key = "#regionId")
     public List<RegionServeDetailDTO> refreshFistPageHotServeList(Long regionId) {
         return findHotServeListByRegionId(regionId);
     }
 
     @Override
+    @CachePut(cacheNames = RedisConstants.CacheName.REGION_SERVE_TYPE, key = "#regionId")
     public List<DisplayServeTypeDTO> refreshFirstPageServeTypeList(Long regionId) {
         return iHomeService.queryServeTypeListByRegionIdDb(regionId);
     }
@@ -284,7 +293,24 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
         updateEntity.setSaleStatus(2);
         regionServeMapper.updateById(updateEntity);
 
+        addServeSync(id);
         return findDetailByIdDb(id);
+    }
+
+    private void addServeSync(Long serveId) {
+        //服务信息
+        RegionServeDO regionServe = baseMapper.selectById(serveId);
+        //区域信息
+        RegionDO region = regionMapper.selectById(regionServe.getRegionId());
+        //服务项信息
+        ServeItemDO serveItem = serveItemMapper.selectById(regionServe.getServeItemId());
+        //服务类型
+        ServeTypeDO serveType = serveTypeMapper.selectById(serveItem.getServeTypeId());
+
+        RegionServeSyncDO regionServeSyncDO = regionServeConverter
+                .regionServeToServeSyncDO(serveType, serveItem, regionServe, region.getCityCode());
+        // 插入数据
+        serveSyncMapper.insert(regionServeSyncDO);
     }
 
 
@@ -314,6 +340,7 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
         regionServeMapper.updateById(updateEntity);
 
         RegionServeDO regionServeDO = baseMapper.selectById(id);
+        serveSyncMapper.deleteById(id);
         return regionServeConverter.regionServeDOToRegionServeDTO(regionServeDO);
     }
 
