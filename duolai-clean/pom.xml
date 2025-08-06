@@ -15,9 +15,9 @@
         <module>foundation</module>
         <module>user</module>
 <!--        <module>market</module>-->
-<!--        <module>order</module>-->
+        <module>order</module>
 <!--        <module>order-dispatch</module>-->
-<!--        <module>pay</module>-->
+        <module>pay</module>
     </modules>
 
     <parent>

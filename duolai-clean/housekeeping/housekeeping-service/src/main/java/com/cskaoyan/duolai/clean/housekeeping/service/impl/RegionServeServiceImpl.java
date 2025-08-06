@@ -346,6 +346,10 @@ public class RegionServeServiceImpl extends ServiceImpl<RegionServeMapper, Regio
 
     @Override
     public ServeDetailDTO findServeDetailById(Long id) {
-        return null;
+        ServeDetailDO serveDetailById = regionServeMapper.findServeDetailById(id);
+        if (serveDetailById==null){
+            return null;
+        }
+        return regionServeConverter.serveDetailDO2DTO(serveDetailById);
     }
 }

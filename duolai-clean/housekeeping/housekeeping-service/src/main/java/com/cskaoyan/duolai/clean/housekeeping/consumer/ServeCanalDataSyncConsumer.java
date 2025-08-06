@@ -102,7 +102,6 @@ public class ServeCanalDataSyncConsumer extends AbstractCanalRocketHandler<Regio
     */
     @Override
     public void batchDelete(List<Long> ids) {
-
         // 删除文档中的数据
         regionServeRepository.deleteAllById(ids);
     }
