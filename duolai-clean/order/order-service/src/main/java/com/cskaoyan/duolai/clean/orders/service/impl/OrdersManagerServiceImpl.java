@@ -112,9 +112,11 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         Page<OrdersDO> page = PageUtils.parsePageQuery(orderPageRequestDTO, OrdersDO.class);
 
         // 查询条件，电话不空查询电话，时间不空查询时间，但是只查询id
-        LambdaQueryWrapper<OrdersDO> queryWrapper = Wrappers.<OrdersDO>lambdaQuery()
-                .eq(ObjectUtil.isNotEmpty(orderPageRequestDTO.getContactsPhone()), OrdersDO::getContactsPhone, orderPageRequestDTO.getContactsPhone())
-                .between(ObjectUtil.isAllNotEmpty(orderPageRequestDTO.getMinCreateTime(), orderPageRequestDTO.getMaxCreateTime()), OrdersDO::getCreateTime, orderPageRequestDTO.getMinCreateTime(), orderPageRequestDTO.getMaxCreateTime())
+        LambdaQueryWrapper<OrdersDO> queryWrapper = null;
+        queryWrapper
+                .eq(ObjectUtils.isNotEmpty( orderPageRequestDTO.getContactsPhone()), OrdersDO::getContactsPhone, orderPageRequestDTO.getContactsPhone())
+                .between(ObjectUtils.isAllNotEmpty(orderPageRequestDTO.getMinCreateTime(), orderPageRequestDTO.getMinCreateTime())
+                        ,OrdersDO::getCreateTime, orderPageRequestDTO.getMinCreateTime(), orderPageRequestDTO.getMinCreateTime())
                 .select(OrdersDO::getId);
 
 
@@ -150,18 +152,18 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         // 放入排序字段
         page.setOrders(PageUtils.getOrderItems(orderPageRequestDTO, OrdersDO.class));
         // 查询条件，指定用户的订单，且订单id在orderPageRequestDTO.getOrdersIdList()集合中
-        LambdaQueryWrapper<OrdersDO> queryWrapper = Wrappers.<OrdersDO>lambdaQuery()
-                .in(OrdersDO::getId, orderPageRequestDTO.getOrdersIdList())
-                .eq(ObjectUtils.isNotNull(orderPageRequestDTO.getUserId()), OrdersDO::getUserId, orderPageRequestDTO.getUserId());
+        LambdaQueryWrapper<OrdersDO> queryWrapper = null;
+        queryWrapper
+                .in(OrdersDO::getId, orderPageRequestDTO.getOrdersIdList());
 
         //2.查询
         page.setSearchCount(false);
-        Page<OrdersDO> ordersPage = baseMapper.selectPage(page, queryWrapper);
-        if (ObjectUtil.isEmpty(ordersPage.getRecords())) {
+        List<OrdersDO> ordersPage = baseMapper.selectList(queryWrapper);
+        if (ObjectUtil.isEmpty(ordersPage)) {
             return Collections.emptyList();
         }
 
-        return ordersPage.getRecords();
+        return ordersPage;
     }
 
 
@@ -243,9 +245,11 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
     public List<OrderSimpleDTO> consumerQueryList(Long currentUserId, Integer ordersStatus, Long sortBy) {
         //1.(需要你们自己写)构建查询条件：指定用户的，指定订单状态的订单，且sortBy小于参数sortBy(注意使用condition参数的重载方法)
         LambdaQueryWrapper<OrdersDO> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(OrdersDO::getUserId, currentUserId)
-                .eq(ObjectUtils.isNotEmpty(ordersStatus), OrdersDO::getOrdersStatus, ordersStatus)
-                .lt(ObjectUtils.isNotEmpty(sortBy),OrdersDO::getSortBy, sortBy);
+        queryWrapper.
+                eq(OrdersDO::getUserId, currentUserId)
+                .lt(ObjectUtils.isNotEmpty(sortBy), OrdersDO::getSortBy, sortBy)
+                .eq(ObjectUtils.isNotEmpty(ordersStatus),OrdersDO::getOrdersStatus, ordersStatus);
+
         Page<OrdersDO> queryPage = new Page<>();
         queryPage.addOrder(OrderItem.desc(FieldConstants.SORT_BY));
         // 只需要查前10条即可

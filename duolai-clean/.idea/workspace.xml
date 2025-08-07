@@ -5,11 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/consumer/ServeCanalDataSyncConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/consumer/ServeCanalDataSyncConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/RegionServeServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersCreateServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersCreateServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersManagerServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersManagerServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +55,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/Cleaner/Cleaner/duolai-clean/framework&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Cleaner/Cleaner/duolai-clean/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/consumer&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -70,6 +68,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\order\order-service\src\main\java\com\cskaoyan\duolai\clean\orders\consumer" />
       <recent name="E:\Cleaner\Cleaner\duolai-clean\framework" />
       <recent name="E:\Cleaner\Cleaner\duolai-clean\housekeeping\housekeeping-service\src\main\java\com\cskaoyan\duolai\clean\housekeeping" />
     </key>
@@ -171,7 +170,13 @@
       <workItem from="1754269028368" duration="32347000" />
       <workItem from="1754442152083" duration="8920000" />
       <workItem from="1754466890444" duration="1050000" />
-      <workItem from="1754468361587" duration="1690000" />
+      <workItem from="1754468361587" duration="2494000" />
+      <workItem from="1754484823457" duration="3162000" />
+      <workItem from="1754528891025" duration="2913000" />
+      <workItem from="1754555042741" duration="1496000" />
+      <workItem from="1754566569122" duration="5229000" />
+      <workItem from="1754574569604" duration="318000" />
+      <workItem from="1754575305682" duration="1034000" />
     </task>
     <servers />
   </component>

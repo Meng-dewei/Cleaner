@@ -56,6 +56,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static com.cskaoyan.duolai.clean.common.constants.ErrorInfo.Code.TRADE_FAILED;
+
 /**
  * <p>
  * 下单服务类
@@ -231,6 +233,28 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void paySuccess(PayStatusMsg payStatusMsg) {
+        //第三方支付单号校验
+        if (ObjectUtil.isEmpty(payStatusMsg.getTransactionId())) {
+            throw new CommonException("支付成功通知缺少第三方支付单号");
+        }
+
+        /*
+            修改订单状态和支付状态: id: payStatusMsg.getProductOrderNo() 订单id
+            1. payTime: LocalDateTime.now()
+            2. transactionId: payStatusMsg.getTransactionId()
+            3. payStatus: OrderPayStatusEnum.PAY_SUCCESS.getStatus()
+            4. orderStatus: OrderStatusEnum.DISPATCHING.getStatus()
+            5. 更新
+         */
+        OrdersDO ordersDO = new OrdersDO();
+        ordersDO.setId(payStatusMsg.getProductOrderNo());
+        ordersDO.setPayTime(LocalDateTime.now());
+        ordersDO.setTradingOrderNo(payStatusMsg.getTradingOrderNo());
+        ordersDO.setTradingChannel(payStatusMsg.getTradingChannel());
+        ordersDO.setTransactionId(payStatusMsg.getTransactionId());
+        ordersDO.setPayStatus(OrderPayStatusEnum.PAY_SUCCESS.getStatus());
+        ordersDO.setOrdersStatus(OrderStatusEnum.DISPATCHING.getStatus());
+        ordersMapper.updateById(ordersDO);
     }
 
 
@@ -245,7 +269,36 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
 
     @Override
     public int getPayResult(Long id) {
-        return 0;
+        //查询订单表
+        OrdersDO ordersDO = baseMapper.selectById(id);
+        if (ObjectUtil.isNull(ordersDO)) {
+            throw new CommonException(TRADE_FAILED, "订单不存在");
+        }
+        //支付结果
+        Integer payStatus = ordersDO.getPayStatus();
+        //未支付且已存在支付服务的交易单号此时远程调用支付服务查询支付结果
+        if (ObjectUtil.equal(OrderPayStatusEnum.NO_PAY.getStatus(), payStatus)
+                && ObjectUtil.isNotEmpty(ordersDO.getTradingOrderNo())) {
+            //远程调用支付服务查询支付结果: tradingApi.findTradResultByTradingOrderNo(ordersDO.getTradingOrderNo());
+            TradingResDTO tradingResDTO = tradingApi.findTradResultByTradingOrderNo(ordersDO.getTradingOrderNo());
+            //如果支付成功这里更新订单状态
+            if (ObjectUtil.isNotNull(tradingResDTO)
+                    && ObjectUtil.equals(tradingResDTO.getTradingState(), PayStateEnum.YJS)) {
+                //设置订单的支付状态成功
+                PayStatusMsg msg = PayStatusMsg.builder()
+                        .productOrderNo(ordersDO.getId())
+                        .tradingChannel(tradingResDTO.getTradingChannel())
+                        .statusCode(PayStateEnum.YJS.getCode())
+                        .tradingOrderNo(tradingResDTO.getTradingOrderNo())
+                        .transactionId(tradingResDTO.getTransactionId())
+                        .build();
+
+                // 调用paySuccess方法, 更新订单状态
+                paySuccess(msg);
+                return OrderPayStatusEnum.PAY_SUCCESS.getStatus();
+            }
+        }
+        return payStatus;
     }
 
     /**
@@ -257,16 +310,66 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
      */
     @Override
     public OrdersPayDTO pay(Long id, OrdersPayCommand ordersPayCommand) {
-        return null;
+        OrdersDO ordersDO = baseMapper.selectById(id);
+        if (ObjectUtil.isNull(ordersDO)) {
+            throw new CommonException(TRADE_FAILED, "订单不存在");
+        }
 
+        // 订单的支付状态为成功直接返回
+        if (OrderPayStatusEnum.PAY_SUCCESS.getStatus() == ordersDO.getPayStatus()
+                && ObjectUtil.isNotEmpty(ordersDO.getTradingOrderNo())) {
+            return orderConverter.ordersDOToOrdersPayDTO(ordersDO);
+        }
+
+        //生成二维码
+        NativePayDTO nativePayDTO = generateQrCode(ordersDO, ordersPayCommand.getTradingChannel());
+        OrdersPayDTO ordersPayDTO = orderConverter.nativePayDTOToOrdersPayDTO(nativePayDTO);
+        return ordersPayDTO;
     }
 
 
     //生成二维码
     private NativePayDTO generateQrCode(OrdersDO ordersDO, PayChannelEnum tradingChannel) {
+        //判断支付渠道
+        Long enterpriseId = ObjectUtil.equal(PayChannelEnum.ALI_PAY, tradingChannel) ?
+                tradeProperties.getAliEnterpriseId() : tradeProperties.getWechatEnterpriseId();
+
+        //构建支付请求参数
+        NativePayParam nativePayCommand = new NativePayParam();
+        // 订单id
+        nativePayCommand.setProductOrderNo(ordersDO.getId());
+        // 支付渠道
+        nativePayCommand.setTradingChannel(tradingChannel);
+        // 实际支付金额
+        nativePayCommand.setTradingAmount(ordersDO.getRealPayAmount());
+        // 商户id
+        nativePayCommand.setEnterpriseId(enterpriseId);
+        // 业务系统标识
+        nativePayCommand.setProductAppId(OrderConstants.PRODUCT_APP_ID);//指定支付来源是家政订单
+        nativePayCommand.setMemo("家政服务");//指定支付来源是家政订单
+
+        //判断是否切换支付渠道
+        if (ObjectUtil.isNotEmpty(ordersDO.getTradingChannel())
+                && ObjectUtil.notEqual(ordersDO.getTradingChannel(), tradingChannel.toString())) {
+            nativePayCommand.setChangeChannel(true);
+        }
+
+        //调用支付服务，生成支付二维码：nativePayApi.createDownLineTrading(nativePayCommand)
+        NativePayDTO downLineTrading = nativePayApi.createDownLineTrading(nativePayCommand);
+
+        /*
+             将交易信息更新到订单中：订单id为productOrderNo
+             1. 更新订单对应的交易单号tradingNo(支付服务为我们的支付交易交易单号): downLineTrading.getTradingOrderNo()
+             2. 更新订单对应的交易单号tradingChannel: downLineTrading.getTradingChannel()
+         */
+        LambdaUpdateWrapper<OrdersDO> updateWrapper = Wrappers.<OrdersDO>lambdaUpdate()
+                .eq(OrdersDO::getId, downLineTrading.getProductOrderNo())
+                .set(OrdersDO::getTradingOrderNo, downLineTrading.getTradingOrderNo())
+                .set(OrdersDO::getTradingChannel, downLineTrading.getTradingChannel());
+        this.update(updateWrapper);
 
 
-        return null;
+        return downLineTrading;
     }
 
 
