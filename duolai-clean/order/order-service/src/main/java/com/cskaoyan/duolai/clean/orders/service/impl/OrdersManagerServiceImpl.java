@@ -191,10 +191,35 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
      */
     @Override
     public OrderInfoDTO getDetail(Long id) {
-
-        return null;
+        OrdersDO ordersDO = ordersMapper.selectById(id);
+        //如果支付过期则取消订单
+        if (ObjectUtils.equals(ordersDO.getPayStatus(), OrderStatusEnum.NO_PAY.getStatus())) {
+            ordersDO = cancelIfPayOvertime(ordersDO);
+        }
+        OrderInfoDTO orderInfoDTO = orderConverter.orderDOToOrderInfoDTO(ordersDO);
+        return orderInfoDTO;
     }
 
+    private OrdersDO cancelIfPayOvertime(OrdersDO order){
+        //创建订单未支付15分钟后自动取消
+        if(order.getOrdersStatus() == OrderStatusEnum.NO_PAY.getStatus() && order.getCreateTime().plusMinutes(15).isBefore(LocalDateTime.now())){
+            //查询支付结果，如果支付最新状态仍是未支付进行取消订单
+            Integer payResultFromTradServer = ordersCreateService.getPayResult(order.getId());
+            if (ObjectUtil.notEqual(payResultFromTradServer, OrderPayStatusEnum.PAY_SUCCESS.getStatus())) {
+                //取消订单
+                OrderCancelDTO orderCancelDTO = orderConverter.orderDOToOrderCancelDTO(order);
+                orderCancelDTO.setCurrentUserType(UserType.SYSTEM);
+                orderCancelDTO.setCancelReason("订单超时支付，自动取消");
+                // 调用cancel方法取消订单(自己完成) !
+                cancel(orderCancelDTO);
+
+                // 如果取消订单，则查询新的订单信息
+                order = getById(order.getId());
+                return order;
+            }
+        }
+        return getById(order.getId());
+    }
 
 
     /**
@@ -204,10 +229,87 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
      */
     @Override
     public void cancel(OrderCancelDTO orderCancelDTO) {
+        OrdersDO ordersDO = getById(orderCancelDTO.getId());
+        orderCancelDTO.setCityCode(ordersDO.getCityCode());
+        orderCancelDTO.setRealPayAmount(ordersDO.getRealPayAmount());
+        orderCancelDTO.setTradingOrderNo(ordersDO.getTradingOrderNo());
+        orderCancelDTO.setUserId(ordersDO.getUserId());
+        //订单状态
+        Integer ordersStatus = ordersDO.getOrdersStatus();
 
+        if (OrderStatusEnum.NO_PAY.getStatus().equals(ordersStatus)) { //订单状态为待支付
+            owner.cancelByNoPay(orderCancelDTO);
+            return;
+        }
+
+        if (OrderStatusEnum.DISPATCHING.getStatus().equals(ordersStatus)) { //订单状态为待服务
+            owner.cancelByDispatching(orderCancelDTO);
+            return;
+        }
+
+        throw new CommonException("当前订单状态不支持取消");
     }
 
 
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelByNoPay(OrderCancelDTO orderCancelDTO) {
+        OrdersCanceledDO ordersCanceledDO = orderConverter.orderCancelDTOtoCanceledDO(orderCancelDTO);
+        ordersCanceledDO.setCancellerId(orderCancelDTO.getCurrentUserId());
+        ordersCanceledDO.setCancelerName(orderCancelDTO.getCurrentUserName());
+        ordersCanceledDO.setCancellerType(orderCancelDTO.getCurrentUserType());
+        ordersCanceledDO.setCancelTime(LocalDateTime.now());
+
+        // 保存订单取消记录
+        ordersCanceledService.save(ordersCanceledDO);
+
+        //更新订单状态为取消订单
+        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder()
+                .id(orderCancelDTO.getId())
+                .originStatus(OrderStatusEnum.NO_PAY.getStatus())
+                .targetStatus(OrderStatusEnum.CANCELED.getStatus())
+                .build();
+
+        // 更新订单状态
+        int result = ordersCommonService.updateStatus(orderUpdateDTO);
+        if (result <= 0) {
+            throw new DbRuntimeException("订单取消事件处理失败");
+        }
+
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelByDispatching(OrderCancelDTO orderCancelDTO) {
+        //保存取消订单记录
+        OrdersCanceledDO ordersCanceledDO = orderConverter.orderCancelDTOtoCanceledDO(orderCancelDTO);
+        ordersCanceledDO.setCancellerId(orderCancelDTO.getCurrentUserId());
+        ordersCanceledDO.setCancelerName(orderCancelDTO.getCurrentUserName());
+        ordersCanceledDO.setCancellerType(orderCancelDTO.getCurrentUserType());
+        ordersCanceledDO.setCancelTime(LocalDateTime.now());
+
+        // 保存取消订单记录
+        ordersCanceledService.save(ordersCanceledDO);
+
+        //更新订单状态为关闭订单
+        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder().id(orderCancelDTO.getId())
+                .originStatus(OrderStatusEnum.DISPATCHING.getStatus())
+                .targetStatus(OrderStatusEnum.CLOSED.getStatus())
+                .refundStatus(OrderRefundStatusEnum.REFUNDING.getStatus())//退款状态为退款中
+                .build();
+
+        // 更新订单状态
+        int result = ordersCommonService.updateStatus(orderUpdateDTO);
+        if (result <= 0) {
+            throw new DbRuntimeException("待服务订单关闭事件处理失败");
+        }
+
+        //添加退款记录
+        OrdersRefundDO ordersRefundDO = new OrdersRefundDO();
+        ordersRefundDO.setId(orderCancelDTO.getId());
+        ordersRefundDO.setTradingOrderNo(orderCancelDTO.getTradingOrderNo());
+        ordersRefundDO.setRealPayAmount(orderCancelDTO.getRealPayAmount());
+        // 保存退款记录(
+        ordersRefundService.save(ordersRefundDO);
+    }
 
 
 

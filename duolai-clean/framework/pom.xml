@@ -19,7 +19,7 @@
         <module>canal-sync</module>
         <module>third-party</module>
         <module>mvc</module>
-<!--        <module>xxl-job</module>-->
+        <module>xxl-job</module>
         <module>mybatis-plus</module>
     </modules>
 
