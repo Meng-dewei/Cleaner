@@ -1,0 +1,64 @@
+#################     服务器配置     #################
+server:
+  port: 11510
+  undertow:
+    accesslog:
+      enabled: true
+      pattern: "%t %a &quot;%r&quot; %s (%D ms)"
+      dir: /data/logs/undertow/${spring.application.name}/access-logs/
+  servlet:
+    context-path: /market
+
+#################     spring公共配置     #################
+
+spring:
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher
+    format:
+      date: yyyy-MM-dd HH:mm:ss
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  profiles:
+    active: dev
+  application:
+    name: market
+  main:
+    # 支持循环依赖注入
+    allow-circular-references: true
+    # bean名相同覆盖
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        #        server-addr: 127.0.0.1:8848
+        server-addr: 192.168.163.138:8848
+      config:
+        server-addr: 192.168.163.138:8848
+        #        server-addr: 127.0.0.1:8848
+        file-extension: yml
+  config:
+    import:
+      - nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+      - nacos:common.yml
+#################     项目独有配置     #################
+mysql:
+  db-name: market
+mybatis:
+  mapper-locations: mapper/*.xml
+  type-aliases-package: com.cskaoyan.duolai.clean.market.dao.mapper
+swagger:
+  enable: true
+  package-path: com.cskaoyan.duolai.clean.market.controller
+  title: 家政服务-促销中心接口文档
+  description: 用于活动优惠券的管理和使用
+  contact-name: 王道训练营
+  version: v1.0
+#################     日志配置     #################
+logging:
+  level:
+    com.cskaoyan.duolai.clean.market.mapper: debug
+    org.mongodb.driver: info
+feign:
+  enable: true

@@ -20,6 +20,10 @@
     <file url="file://$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/housekeeping/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/housekeeping/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/market/market-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/market/market-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/market/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/market/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order/order-api/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order/order-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/order/src/main/java" charset="UTF-8" />

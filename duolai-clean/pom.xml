@@ -14,7 +14,7 @@
         <module>housekeeping</module>
         <module>foundation</module>
         <module>user</module>
-<!--        <module>market</module>-->
+        <module>market</module>
         <module>order</module>
 <!--        <module>order-dispatch</module>-->
         <module>pay</module>
