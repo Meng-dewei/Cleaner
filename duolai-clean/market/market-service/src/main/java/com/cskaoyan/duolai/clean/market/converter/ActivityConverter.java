@@ -15,7 +15,7 @@ import java.util.List;
 public interface ActivityConverter {
 
 
-   @Mapping(source = "totalNum", target = "")
+//   @Mapping(source = "totalNum", target = "")
    ActivityDO activityCommandToActivityDO(ActivityCommand activityCommand);
     ActivityInfoDTO activityToActivityInfoDTO(ActivityDO activityDO);
 

@@ -2,6 +2,7 @@ package com.cskaoyan.duolai.clean.orders.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 //import com.cskaoyan.duolai.clean.market.dto.AvailableCouponsDTO;
+import com.cskaoyan.duolai.clean.market.dto.AvailableCouponsDTO;
 import com.cskaoyan.duolai.clean.orders.model.entity.OrdersDO;
 import com.cskaoyan.duolai.clean.orders.request.OrdersPayCommand;
 import com.cskaoyan.duolai.clean.orders.request.PlaceOrderCommand;
@@ -25,7 +26,7 @@ public interface IOrdersCreateService extends IService<OrdersDO> {
      * @param purNum  购买数量
      * @return 可用优惠券列表
      */
-    //List<AvailableCouponsDTO> getAvailableCoupons(Long serveId, Integer purNum);
+    List<AvailableCouponsDTO> getAvailableCoupons(Long serveId, Integer purNum);
 
     /**
      * 下单

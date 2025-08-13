@@ -29,12 +29,14 @@ public class RedissonLuaHandler {
 
     private String sha1;
 
+    // 自定义初始化方法
     @PostConstruct
     public void loadScript() throws IOException {
         // 缓存脚本
         ClassPathResource classPathResource
                 = new ClassPathResource(seizeCouponLuaPath);
         byte[] bytes = classPathResource.getInputStream().readAllBytes();
+        // lua脚本字符串
         String luaStr = new String(bytes, StandardCharsets.UTF_8);
         // 上传lua脚本，redis会缓存这个脚本，返回一个标识值
         sha1 = redissonClient.getScript().scriptLoad(luaStr);

@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cskaoyan.duolai.clean.common.expcetions.CommonException;
 import com.cskaoyan.duolai.clean.common.model.dto.PageDTO;
 import com.cskaoyan.duolai.clean.common.utils.ObjectUtils;
+import com.cskaoyan.duolai.clean.market.request.CouponUseBackParam;
 import com.cskaoyan.duolai.clean.mvc.utils.UserContext;
 import com.cskaoyan.duolai.clean.orders.client.*;
 import com.cskaoyan.duolai.clean.orders.constants.FieldConstants;
@@ -31,12 +32,14 @@ import com.cskaoyan.duolai.clean.mysql.utils.PageUtils;
 import com.cskaoyan.duolai.clean.orders.config.OrderStateMachine;
 import com.cskaoyan.duolai.clean.orders.model.mapper.OrdersMapper;
 import com.cskaoyan.duolai.clean.orders.model.dto.OrderSnapshotDTO;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,6 +83,9 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
 
     @Autowired
     OrdersManagerServiceImpl owner;
+
+    @Autowired
+    CouponApi couponApi;
 
     /**
      * 管理端 - 分页查询订单列表
@@ -168,8 +174,18 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
 
 
     @Override
+    @Transactional
     public void orderSeizeSuccess(Long id) {
+        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder().id(id)
+                .originStatus(OrderStatusEnum.DISPATCHING.getStatus())
+                .targetStatus(OrderStatusEnum.NO_SERVE.getStatus())
+                .build();
 
+        // 更新订单状态
+        int result = ordersCommonService.updateStatus(orderUpdateDTO);
+        if (result <= 0) {
+            throw new DbRuntimeException("待服务订单关闭事件处理失败");
+        }
     }
 
     @Override
@@ -210,7 +226,7 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
                 OrderCancelDTO orderCancelDTO = orderConverter.orderDOToOrderCancelDTO(order);
                 orderCancelDTO.setCurrentUserType(UserType.SYSTEM);
                 orderCancelDTO.setCancelReason("订单超时支付，自动取消");
-                // 调用cancel方法取消订单(自己完成) !
+                // 调用cancel方法取消订单
                 cancel(orderCancelDTO);
 
                 // 如果取消订单，则查询新的订单信息
@@ -228,6 +244,7 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
      * @param orderCancelDTO 取消订单模型
      */
     @Override
+    @GlobalTransactional
     public void cancel(OrderCancelDTO orderCancelDTO) {
         OrdersDO ordersDO = getById(orderCancelDTO.getId());
         orderCancelDTO.setCityCode(ordersDO.getCityCode());
@@ -236,6 +253,17 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         orderCancelDTO.setUserId(ordersDO.getUserId());
         //订单状态
         Integer ordersStatus = ordersDO.getOrdersStatus();
+
+        BigDecimal discountAmount = ordersDO.getDiscountAmount();
+
+        if (discountAmount.doubleValue() > 0) {
+            // 使用了优惠卷，那么需要退回优惠卷
+            CouponUseBackParam couponUseBackCommand = new CouponUseBackParam();
+            couponUseBackCommand.setUserId(orderCancelDTO.getUserId());
+            couponUseBackCommand.setOrdersId(orderCancelDTO.getId());
+            // 调用营销服务
+            couponApi.useBack(couponUseBackCommand);
+        }
 
         if (OrderStatusEnum.NO_PAY.getStatus().equals(ordersStatus)) { //订单状态为待支付
             owner.cancelByNoPay(orderCancelDTO);
@@ -345,7 +373,7 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
      */
     @Override
     public List<OrderSimpleDTO> consumerQueryList(Long currentUserId, Integer ordersStatus, Long sortBy) {
-        //1.(需要你们自己写)构建查询条件：指定用户的，指定订单状态的订单，且sortBy小于参数sortBy(注意使用condition参数的重载方法)
+        //1.构建查询条件：指定用户的，指定订单状态的订单，且sortBy小于参数sortBy(注意使用condition参数的重载方法)
         LambdaQueryWrapper<OrdersDO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.
                 eq(OrdersDO::getUserId, currentUserId)

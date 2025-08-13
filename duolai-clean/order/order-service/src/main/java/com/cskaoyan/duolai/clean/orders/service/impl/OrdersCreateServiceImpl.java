@@ -13,6 +13,9 @@ import com.cskaoyan.duolai.clean.common.utils.DateUtils;
 import com.cskaoyan.duolai.clean.common.utils.IdUtils;
 import com.cskaoyan.duolai.clean.common.utils.NumberUtils;
 import com.cskaoyan.duolai.clean.common.utils.ObjectUtils;
+import com.cskaoyan.duolai.clean.market.dto.AvailableCouponsDTO;
+import com.cskaoyan.duolai.clean.market.dto.CouponUseDTO;
+import com.cskaoyan.duolai.clean.market.request.CouponUseParam;
 import com.cskaoyan.duolai.clean.orders.client.*;
 import com.cskaoyan.duolai.clean.orders.constants.OrderConstants;
 import com.cskaoyan.duolai.clean.orders.constants.RedisConstants;
@@ -42,6 +45,7 @@ import com.cskaoyan.duolai.clean.orders.enums.OrderStatusEnum;
 import com.cskaoyan.duolai.clean.orders.model.mapper.OrdersMapper;
 import com.cskaoyan.duolai.clean.orders.model.dto.OrderSnapshotDTO;
 import com.cskaoyan.duolai.clean.user.dto.AddressBookDTO;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,18 +107,18 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
     Boolean openPay;
 
 
-//    @Override
-//    public List<AvailableCouponsDTO> getAvailableCoupons(Long serveId, Integer purNum) {
-//        // 1.获取服务(调用家政服务)
-//        ServeDetailDTO serveResDTO = serveApi.findById(serveId);
-//        if (serveResDTO == null || serveResDTO.getSaleStatus() != 2) {
-//            throw new BadRequestException("服务不可用");
-//        }
-//        // 2.计算订单总金额
-//        BigDecimal totalAmount = serveResDTO.getPrice().multiply(new BigDecimal(purNum));
-//        // 3.获取可用优惠券,并返回优惠券列表(服务调用)
-//        return couponApi.getAvailable(totalAmount);
-//    }
+    @Override
+    public List<AvailableCouponsDTO> getAvailableCoupons(Long serveId, Integer purNum) {
+        // 1.获取服务
+        ServeDetailDTO serveResDTO = serveApi.findById(serveId);
+        if (serveResDTO == null || serveResDTO.getSaleStatus() != 2) {
+            throw new BadRequestException("服务不可用");
+        }
+        // 2.计算订单总金额
+        BigDecimal totalAmount = serveResDTO.getPrice().multiply(new BigDecimal(purNum));
+        // 3.获取可用优惠券,并返回优惠券列表
+        return couponApi.getAvailable(totalAmount);
+    }
 
     @Override
     public PlaceOrderDTO placeOrder(PlaceOrderCommand placeOrderCommand) {
@@ -160,7 +164,7 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
         orderDO.setSortBy(sortBy);
 
         // 保存订单数据
-        owner.add(orderDO);
+        owner.addWithCoupon(orderDO, placeOrderCommand.getCouponId());
 
         return new PlaceOrderDTO(orderDO.getId());
     }
@@ -255,6 +259,13 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
         ordersDO.setPayStatus(OrderPayStatusEnum.PAY_SUCCESS.getStatus());
         ordersDO.setOrdersStatus(OrderStatusEnum.DISPATCHING.getStatus());
         ordersMapper.updateById(ordersDO);
+
+        // 订单分流
+        OrdersDO ordersDO1 = baseMapper.selectById(payStatusMsg.getProductOrderNo());
+        OrderDTO ordersDivisionDTO = orderConverter.ordersDoToOrdersDTO(ordersDO1);
+        OrderParam orderParam = orderConverter.orderDTOToOrderParam(ordersDivisionDTO);
+
+        ordersSeizeApi.orderDivision(orderParam);
     }
 
 
@@ -368,16 +379,36 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
                 .set(OrdersDO::getTradingChannel, downLineTrading.getTradingChannel());
         this.update(updateWrapper);
 
-
         return downLineTrading;
     }
 
 
     // 分布式事务(全局事务)
-    @Transactional
+//    @Transactional
     @Override
+    @GlobalTransactional
     public void addWithCoupon(OrdersDO ordersDO, Long couponId) {
+        //保存订单
+        owner.add(ordersDO);
 
+        if (ObjectUtils.isNotNull(couponId)) {
+            // 使用了优惠卷
+            CouponUseParam couponUseCommand = new CouponUseParam();
+            couponUseCommand.setOrdersId(ordersDO.getId());
+            couponUseCommand.setId(couponId);
+            couponUseCommand.setTotalAmount(ordersDO.getTotalAmount());
+            //优惠券核销
+            CouponUseDTO couponUseDTO = couponApi.use(couponUseCommand);
+            // 设置优惠金额
+            ordersDO.setDiscountAmount(couponUseDTO.getDiscountAmount());
+            // 计算实付金额
+            BigDecimal realPayAmount = ordersDO.getTotalAmount().subtract(couponUseDTO.getDiscountAmount());
+            ordersDO.setRealPayAmount(realPayAmount);
+            ordersDO.setDiscountAmount(couponUseDTO.getDiscountAmount());
+
+            // 更新优惠金额和实际支付金额
+            updateById(ordersDO);
+        }
     }
 
 

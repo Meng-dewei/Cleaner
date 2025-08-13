@@ -163,15 +163,13 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, ActivityDO>
         // 2.未使用优惠券作废(id表示优惠卷活动的id)
         couponService.revoke(id);
 
-
-
-
-
         // 3. 删除缓存中的优惠卷活动，以及其库存
         // 优惠卷活动的缓存为: redissonClient.getMap(RedisConstants.RedisKey.ACTIVITY_CACHE_LIST);
         // 优惠卷活动库存缓存为: RMap<String, Integer> map = redissonClient.getMap(RedisConstants.RedisKey.COUPON_RESOURCE_STOCK, StringCodec.INSTANCE);
-
-
+        RMap<Long, SeizeCouponInfoDTO> activityCache = redissonClient.getMap(RedisConstants.RedisKey.ACTIVITY_CACHE_LIST);
+        activityCache.remove(id);
+        RMap<String, Integer> stockMap = redissonClient.getMap(RedisConstants.RedisKey.COUPON_RESOURCE_STOCK, StringCodec.INSTANCE);
+        stockMap.remove(id.toString());
     }
 
     @Override
@@ -239,8 +237,36 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, ActivityDO>
 
     @Override
     public ActivityInfoDTO getActivityInfoByIdFromCache(Long id) {
+        RMap<Long, SeizeCouponInfoDTO> activityCache = redissonClient.getMap(RedisConstants.RedisKey.ACTIVITY_CACHE_LIST);
+        SeizeCouponInfoDTO seizeCouponInfo = activityCache.get(id);
 
-        return null;
+        if (seizeCouponInfo == null) {
+            return null;
+        }
+
+        RMap<String, String> stockMap = redissonClient.getMap(RedisConstants.RedisKey.COUPON_RESOURCE_STOCK, StringCodec.INSTANCE); // 声明为<String, String>
+        String remainNumStr = stockMap.get(id.toString());
+        Integer remainNum = remainNumStr != null ? Integer.parseInt(remainNumStr) : 0;
+
+        ActivityInfoDTO activityInfoDTO = new ActivityInfoDTO();
+        activityInfoDTO.setId(seizeCouponInfo.getId());
+        activityInfoDTO.setName(seizeCouponInfo.getName());
+        activityInfoDTO.setType(seizeCouponInfo.getType());
+        activityInfoDTO.setAmountCondition(seizeCouponInfo.getAmountCondition());
+        activityInfoDTO.setDiscountRate(seizeCouponInfo.getDiscountRate());
+        activityInfoDTO.setDiscountAmount(seizeCouponInfo.getDiscountAmount());
+        activityInfoDTO.setDistributeStartTime(seizeCouponInfo.getDistributeStartTime());
+        activityInfoDTO.setDistributeEndTime(seizeCouponInfo.getDistributeEndTime());
+        activityInfoDTO.setTotalNum(seizeCouponInfo.getTotalNum());
+
+        int actualStatus = getStatus(
+                seizeCouponInfo.getDistributeStartTime(),
+                seizeCouponInfo.getDistributeEndTime(),
+                seizeCouponInfo.getStatus()
+        );
+        activityInfoDTO.setStatus(actualStatus);
+
+        return activityInfoDTO;
     }
 
     // 实时性问题，定时任务未及时更新

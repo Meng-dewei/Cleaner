@@ -63,6 +63,9 @@ public class ConfigRegionServiceImpl extends ServiceImpl<ConfigRegionMapper, Con
 
     @Override
     public ConfigRegionDTO queryByCityCode(String cityCode) {
-       return null;
+        ConfigRegionDO configRegion = lambdaQuery()
+                .eq(ConfigRegionDO::getCityCode, cityCode)
+                .one();
+        return configRegionConverter.configRegionDOToDTO(configRegion);
     }
 }

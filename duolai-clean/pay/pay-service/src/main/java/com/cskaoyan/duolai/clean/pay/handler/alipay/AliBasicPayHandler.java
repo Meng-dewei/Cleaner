@@ -129,6 +129,8 @@ public class AliBasicPayHandler implements BasicPayHandler {
             log.error(msg, e);
             throw new CommonException(ErrorInfo.Code.TRADE_FAILED, msg);
         }
+        System.out.println(refundResponse.getSubCode());
+        System.out.println(refundResponse.getSubMsg());
         refundRecord.setRefundId(null);
         refundRecord.setRefundCode(refundResponse.getSubCode());
         refundRecord.setRefundMsg(JSONUtil.toJsonStr(refundResponse));

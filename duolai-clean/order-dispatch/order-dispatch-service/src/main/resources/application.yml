@@ -1,0 +1,63 @@
+#################     服务器配置     #################
+server:
+  port: 11506
+  servlet:
+    context-path: /order-dispatch
+
+#################     spring公共配置     #################
+spring:
+  mvc:
+    path-match:
+      matching-strategy: ant_path_matcher
+    format:
+      date: yyyy-MM-dd HH:mm:ss
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  profiles:
+    active: dev
+  application:
+    name: order-dispatch
+  main:
+    # 支持循环依赖注入
+    allow-circular-references: true
+    # bean名相同覆盖
+    allow-bean-definition-overriding: true
+  cloud:
+    nacos:
+      discovery:
+        #        server-addr: 127.0.0.1:8848
+        server-addr: 192.168.163.138:8848
+      config:
+        server-addr: 192.168.163.138:8848
+        #        server-addr: 127.0.0.1:8848
+        file-extension: yml
+  config:
+    import:
+      - nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+      - nacos:common.yml
+#################     项目独有配置     #################
+mysql:
+  db-name: order_dispatch
+mybatis:
+  mapper-locations: mapper/*.xml
+  type-aliases-package: com.cskaoyan.duolai.clean.housekeeping.dao.mapper
+swagger:
+  enable: true
+  package-path: com.cskaoyan.duolai.clean.orders.dispatch.controller
+  title: 家政服务-抢单模块接口文档
+  description: 用于服务端抢单，抢单列表检索
+  contact-email: yjy@ .cn
+  version: v1.0
+feign:
+  enable: true
+seata:
+  enabled: true
+
+
+
+#################     日志配置     #################
+logging:
+  level:
+    io.seata: debug
+    com.cskaoyan.duolai.clean.orders.dispatch.dao.mapper: debug

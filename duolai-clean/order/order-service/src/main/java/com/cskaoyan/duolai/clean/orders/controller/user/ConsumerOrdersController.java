@@ -1,5 +1,6 @@
 package com.cskaoyan.duolai.clean.orders.controller.user;
 
+import com.cskaoyan.duolai.clean.market.dto.AvailableCouponsDTO;
 import com.cskaoyan.duolai.clean.orders.converter.OrderConverter;
 import com.cskaoyan.duolai.clean.orders.dto.OrderCancelDTO;
 import com.cskaoyan.duolai.clean.orders.model.dto.OrderSimpleDTO;
@@ -34,16 +35,16 @@ public class ConsumerOrdersController {
     @Resource
     OrderConverter orderConverter;
 
-//    @GetMapping("/getAvailableCoupons")
-//    @ApiOperation("获取可用优惠券")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "serveId", value = "服务id", required = true, dataTypeClass = Integer.class),
-//            @ApiImplicitParam(name = "purNum", value = "购买数量，默认1", required = false, dataTypeClass = Long.class)
-//    })
-//    public List<AvailableCouponsDTO> getCoupons(@RequestParam(value = "serveId", required = true) Long serveId,
-//                                                @RequestParam(value = "purNum", required = false, defaultValue = "1") Integer purNum) {
-//        return ordersCreateService.getAvailableCoupons(serveId, purNum);
-//    }
+    @GetMapping("/getAvailableCoupons")
+    @ApiOperation("获取可用优惠券")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "serveId", value = "服务id", required = true, dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "purNum", value = "购买数量，默认1", required = false, dataTypeClass = Long.class)
+    })
+    public List<AvailableCouponsDTO> getCoupons(@RequestParam(value = "serveId", required = true) Long serveId,
+                                                @RequestParam(value = "purNum", required = false, defaultValue = "1") Integer purNum) {
+        return ordersCreateService.getAvailableCoupons(serveId, purNum);
+    }
 
     @ApiOperation("下单接口")
     @PostMapping("/place")

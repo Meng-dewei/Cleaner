@@ -16,7 +16,7 @@
         <module>user</module>
         <module>market</module>
         <module>order</module>
-<!--        <module>order-dispatch</module>-->
+        <module>order-dispatch</module>
         <module>pay</module>
     </modules>
 
@@ -250,11 +250,11 @@
                 <artifactId>xxl-job-core</artifactId>
                 <version>${xxl-job.version}</version>
             </dependency>
-            <dependency>
-                <artifactId>seata-spring-boot-starter</artifactId>
-                <groupId>io.seata</groupId>
-                <version>${seata-version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <artifactId>seata-spring-boot-starter</artifactId>-->
+<!--                <groupId>io.seata</groupId>-->
+<!--                <version>${seata-version}</version>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>org.antlr</groupId>

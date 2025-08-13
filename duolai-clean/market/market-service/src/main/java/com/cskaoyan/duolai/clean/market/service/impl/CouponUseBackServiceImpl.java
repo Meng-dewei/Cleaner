@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cskaoyan.duolai.clean.common.expcetions.BadRequestException;
 import com.cskaoyan.duolai.clean.common.expcetions.DBException;
 import com.cskaoyan.duolai.clean.common.utils.ObjectUtils;
+import com.cskaoyan.duolai.clean.market.dao.mapper.CouponMapper;
 import com.cskaoyan.duolai.clean.market.enums.CouponStatusEnum;
 import com.cskaoyan.duolai.clean.market.dao.mapper.CouponWriteOffMapper;
 import com.cskaoyan.duolai.clean.market.dao.entity.CouponDO;
@@ -16,6 +17,7 @@ import com.cskaoyan.duolai.clean.market.dao.entity.CouponUseBackDO;
 import com.cskaoyan.duolai.clean.market.dao.mapper.CouponUseBackMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,9 @@ public class CouponUseBackServiceImpl extends ServiceImpl<CouponUseBackMapper, C
 
     @Resource
     RedissonClient redissonClient;
+
+    @Autowired
+    CouponMapper couponMapper;
 
     @Override
     @Transactional
@@ -67,6 +72,14 @@ public class CouponUseBackServiceImpl extends ServiceImpl<CouponUseBackMapper, C
         /*
             更新用户已强优惠卷状态，将userTime置为null，将ordersId置为null
          */
+        if (!couponService.lambdaUpdate()
+                .eq(CouponDO::getId, couponId)
+                .set(CouponDO::getUseTime, null)
+                .set(CouponDO::getStatus, status.getStatus())
+                .set(CouponDO::getOrdersId, null)
+                .update()) {
+            throw new DBException("更新优惠卷表失败");
+        }
 
         /*
              保存优惠卷回退信息
@@ -75,5 +88,13 @@ public class CouponUseBackServiceImpl extends ServiceImpl<CouponUseBackMapper, C
              3. use_back时间
              4. 优惠卷核销时间 coupon表的user_time
          */
+        if (!this.save(CouponUseBackDO.builder()
+                .couponId(couponId)
+                .userId(userId)
+                .useBackTime(nowTime)
+                .writeOffTime(coupon.getUseTime())
+                .build())) {
+            throw new DBException("更新退回表失败");
+        }
     }
 }
