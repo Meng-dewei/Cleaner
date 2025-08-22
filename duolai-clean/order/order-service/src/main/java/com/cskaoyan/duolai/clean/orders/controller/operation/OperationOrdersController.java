@@ -4,6 +4,7 @@ import com.cskaoyan.duolai.clean.common.model.dto.PageDTO;
 import com.cskaoyan.duolai.clean.orders.converter.OrderConverter;
 import com.cskaoyan.duolai.clean.orders.dto.OrderCancelDTO;
 import com.cskaoyan.duolai.clean.orders.model.dto.OrderSimpleDTO;
+import com.cskaoyan.duolai.clean.orders.model.mapper.OrdersMapper;
 import com.cskaoyan.duolai.clean.orders.request.OrderPageRequest;
 import com.cskaoyan.duolai.clean.orders.dto.OperationOrdersDetailDTO;
 import com.cskaoyan.duolai.clean.orders.service.IOrdersManagerService;
@@ -11,10 +12,12 @@ import com.cskaoyan.duolai.clean.orders.request.OrderCancelCommand;
 import com.cskaoyan.duolai.clean.common.model.CurrentUserInfo;
 import com.cskaoyan.duolai.clean.common.model.PageResult;
 import com.cskaoyan.duolai.clean.mvc.utils.UserContext;
+import com.cskaoyan.duolai.clean.orders.strategy.OrderCancelStrategyManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,6 +38,12 @@ public class OperationOrdersController {
         return ordersManagerService.operationPageQuery(orderPageRequestDTO);
     }
 
+
+    @Autowired
+    OrderCancelStrategyManager orderCancelStrategyManager;
+
+    @Autowired
+    OrdersMapper ordersMapper;
 
     @PutMapping("/cancel")
     @ApiOperation("取消订单")

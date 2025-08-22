@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: canal-client
+  
+  # Redis配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: 
+    database: 0
+    timeout: 10000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+
+# RocketMQ配置
+rocketmq:
+  name-server: 127.0.0.1:9876
+  consumer:
+    group: canal-consumer-group
+    # 一次拉取消息的最大数量
+    pull-batch-size: 100
+    # 启动时从何处消费
+    consume-from-where: CONSUME_FROM_LAST_OFFSET
+    # 指定为集群消费模式
+    message-model: CLUSTERING
+  
+# Canal配置
+canal:
+  # 监听哪些表的数据变化，用于缓存同步
+  tables:
+    - database: xzb_db
+      table: t_user
+      cache-key: "user:%d"  # %d将被替换为用户ID
+    - database: xzb_db
+      table: t_product
+      cache-key: "product:%d"
+    - database: xzb_db
+      table: t_order
+      cache-key: "order:%d"
+  topic: canal-topic 

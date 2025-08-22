@@ -130,7 +130,8 @@ public class SeizeJobHandler {
             orderSeizeRepository.deleteAllById(ids);
         }
 
-        // 发送给用户订单服务，取消订单消息 rocketMQClient.sendMessage(MqTopicConstant.ORDERS_CANCEL_TOPIC, ids);
+        // 发送给用户订单服务，取消订单消息
+        rocketMQClient.sendMessage(MqTopicConstant.ORDERS_CANCEL_TOPIC, ids);
     }
 
 

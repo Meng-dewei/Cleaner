@@ -102,6 +102,12 @@ public class ServeProviderServiceImpl extends ServiceImpl<ServeProviderMapper, S
         //新增服务人员添加状态设置记录(serve_provider_setting表)，调用serveProviderSettingsService.add(服务从业者id)
         serveProviderSettingsService.add(serveProviderDO.getId());
 
+        // 添加服务从业者的数据到数据同步表
+        // 向serve_provider_sync表中添加记录
+
+        Long id = null;
+        serveProviderSyncService.add(id);
+
         // 返回ServeProviderDTO对象主要是方便生成jwt
         return serveProviderConverter.serveProviderDOToDTO(serveProviderDO);
     }

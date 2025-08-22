@@ -60,6 +60,7 @@ public class OrdersHandler {
         log.info("订单超时取消任务开始执行...");
         //查询支付超时状态订单
         Integer overTimePayOrderCount = ordersJobProperties.getOverTimePayOrderCount();
+        ordersCreateService.queryOverTimePayOrdersListByCount(overTimePayOrderCount);
         List<OrdersDO> ordersDOList = ordersCreateService.queryOverTimePayOrdersListByCount(overTimePayOrderCount);
         if (CollUtil.isEmpty(ordersDOList)) {
             XxlJobHelper.log("查询到订单列表为空！");
@@ -83,6 +84,7 @@ public class OrdersHandler {
     @XxlJob(value = "handleRefundOrders")
     public void handleRefundOrders() {
         log.info("自动退款任务开始执行...");
+        ordersRefundService.queryRefundOrderListByCount(ordersJobProperties.getRefundOrderCount());
         //查询退款中订单
         List<OrdersRefundDO> ordersRefundDOList = ordersRefundService.queryRefundOrderListByCount(ordersJobProperties.getRefundOrderCount());
         for (OrdersRefundDO ordersRefundDO : ordersRefundDOList) {
@@ -136,6 +138,18 @@ public class OrdersHandler {
 
         //非退款中状态，删除申请退款记录，删除后定时任务不再扫描
         ordersRefundService.removeById(ordersRefundDO.getId());
+
+        //新增快照(因为退款成功并不会修改订单状态，我们只需要新增一个订单快照，在快照中添加退款信息即可，所以调用的是saveSnapshot方法)
+        String jsonResult = orderStateMachine.getCurrentSnapshot(ordersRefundDO.getId().toString());
+        OrderSnapshotDTO orderSnapshotDTO = JSONUtil.toBean(jsonResult, OrderSnapshotDTO.class);
+        //退款状态
+        orderSnapshotDTO.setRefundStatus(refundStatus);
+        //支付服务的退款单号
+        orderSnapshotDTO.setRefundNo(refundDTO.getRefundNo());
+        //第三方的退款id
+        orderSnapshotDTO.setThirdRefundOrderId(refundDTO.getRefundId());
+        // 仅仅保存快照
+        orderStateMachine.saveSnapshot(orderSnapshotDTO.getId().toString(), OrderStatusEnum.CLOSED, orderSnapshotDTO);
     }
 
 

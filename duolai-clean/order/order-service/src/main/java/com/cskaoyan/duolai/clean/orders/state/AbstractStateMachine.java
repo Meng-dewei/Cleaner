@@ -228,14 +228,14 @@ public abstract class AbstractStateMachine {
         //设置目标状态
         bizSnapshot.setSnapshotStatus(statusChangeEventEnum.getTargetStatus().getStatus());
         if (ObjectUtil.isNotNull(bean)) {
-            //4.执行状态变更
+            //3.执行状态变更
             bean.handler(bizId, bizSnapshot);
         }
 
-        //3. 更新变更后的订单状态
+        //4. 更新变更后的订单状态
         stateMachinePersister.persist(name, bizId, statusChangeEventEnum.getTargetStatus());
 
-        //4、存储快照状态变更后的快照
+        //5、存储快照状态变更后的快照
         if (ObjectUtil.isNotEmpty(bizSnapshot)) {
             //构建新的快照信息
             bizSnapshot = buildNewSnapshot(bizId, bizSnapshot, statusChangeEventEnum.getSourceStatus());
@@ -268,6 +268,7 @@ public abstract class AbstractStateMachine {
         OrderSnapshotDTO oldOrderSnapshotDTO = JSONUtil.toBean(currentSnapshot, OrderSnapshotDTO.class);
 
         //3.将新的订单快照数据覆盖旧订单快照数据，忽略null
+        // 合并订单快照数据，将新的订单快照数据中的非null属性值，放入到旧的订单快照对象中
         snapshotConverter.updateOrderSnapshot(bizSnapshot, oldOrderSnapshotDTO);
         return oldOrderSnapshotDTO;
     }

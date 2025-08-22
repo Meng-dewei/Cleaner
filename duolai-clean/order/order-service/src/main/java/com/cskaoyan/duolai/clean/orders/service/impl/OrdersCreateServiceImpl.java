@@ -260,6 +260,17 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
         ordersDO.setOrdersStatus(OrderStatusEnum.DISPATCHING.getStatus());
         ordersMapper.updateById(ordersDO);
 
+        // 修改订单状态和支付状态
+        OrderSnapshotDTO orderSnapshotDTO = OrderSnapshotDTO.builder()
+                .payTime(LocalDateTime.now())
+                .tradingOrderNo(payStatusMsg.getTradingOrderNo())
+                .tradingChannel(payStatusMsg.getTradingChannel())
+                .thirdOrderId(payStatusMsg.getTransactionId())
+                .payStatus(OrderPayStatusEnum.PAY_SUCCESS.getStatus())
+                .build();
+        orderStateMachine.changeStatus(String.valueOf(ordersDO.getId()), OrderStatusChangeEventEnum.PAYED, orderSnapshotDTO);
+
+
         // 订单分流
         OrdersDO ordersDO1 = baseMapper.selectById(payStatusMsg.getProductOrderNo());
         OrderDTO ordersDivisionDTO = orderConverter.ordersDoToOrdersDTO(ordersDO1);
@@ -276,6 +287,15 @@ public class OrdersCreateServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO>
         if (!save) {
             throw new DbRuntimeException("下单失败");
         }
+
+        //状态机启动
+        OrdersDO orderDO = baseMapper.selectById(ordersDO.getId());
+        OrderSnapshotDTO orderSnapshotDTO =orderConverter.orderDOtoSnapshotDTO(orderDO);
+        orderSnapshotDTO.setPayStatus(OrderPayStatusEnum.NO_PAY.getStatus());
+
+        //开启订单状态(保存订单初始状态，保存订单快照)
+        orderStateMachine.start(ordersDO.getId().toString(), orderSnapshotDTO);
+
     }
 
     @Override

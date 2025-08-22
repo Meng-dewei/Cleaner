@@ -5,25 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0d4679b8-a161-44d4-94df-1a35aef1c1ad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/ConfigRegionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/housekeeping/housekeeping-service/src/main/java/com/cskaoyan/duolai/clean/housekeeping/service/impl/ConfigRegionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/config/PostProcessorConfig.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/config/RedissonLuaHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/config/RedissonLuaHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/converter/ActivityConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/converter/ActivityConverter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/ActivityServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/ActivityServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/CouponServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/CouponServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/CouponUseBackServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/java/com/cskaoyan/duolai/clean/market/service/impl/CouponUseBackServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/market/market-service/src/main/resources/scripts/seizeCouponScript.lua" beforeDir="false" afterPath="$PROJECT_DIR$/market/market-service/src/main/resources/scripts/seizeCouponScript.lua" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order/order-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/client/CouponApi.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/client/CouponApi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/consumer/ServeProviderStateSyncConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/consumer/ServeProviderStateSyncConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/enums/DispatchStrategyEnum.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/enums/DispatchStrategyEnum.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/job/SeizeJobHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/job/SeizeJobHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/service/impl/OrderDispatchServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/service/impl/OrderDispatchServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/service/impl/OrderSeizeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/service/impl/OrderSeizeServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/strategys/annotations/DispatchStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/order-dispatch/order-dispatch-service/src/main/java/com/cskaoyan/duolai/clean/orders/dispatch/strategys/annotations/DispatchStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/controller/operation/OperationOrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/controller/operation/OperationOrdersController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/controller/user/ConsumerOrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/controller/user/ConsumerOrdersController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/IOrdersCreateService.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/IOrdersCreateService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/job/OrdersHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/job/OrdersHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersCreateServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersCreateServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersManagerServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/service/impl/OrdersManagerServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pay/pay-service/src/main/java/com/cskaoyan/duolai/clean/pay/handler/alipay/AliBasicPayHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/pay/pay-service/src/main/java/com/cskaoyan/duolai/clean/pay/handler/alipay/AliBasicPayHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/state/AbstractStateMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/order/order-service/src/main/java/com/cskaoyan/duolai/clean/orders/state/AbstractStateMachine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeProviderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeProviderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeProviderSettingsServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeProviderSettingsServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeSkillServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user/service/impl/ServeSkillServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,45 +48,45 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Maven.duolai-clean [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.duolai-clean [install].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.foundation [clean].executor&quot;: &quot;Run&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;Spring Boot.FoundationApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.GatewayApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.HouseKeepingServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.MarketServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.OrderServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.PayServiceApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.UserServiceApplicaiton.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/Cleaner/Cleaner/duolai-clean&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven.duolai-clean [clean].executor": "Run",
+    "Maven.duolai-clean [install].executor": "Run",
+    "Maven.foundation [clean].executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Spring Boot.FoundationApplication.executor": "Run",
+    "Spring Boot.GatewayApplication.executor": "Run",
+    "Spring Boot.HouseKeepingServiceApplication.executor": "Run",
+    "Spring Boot.MarketServiceApplication.executor": "Run",
+    "Spring Boot.OrderServiceApplication.executor": "Run",
+    "Spring Boot.PayServiceApplication.executor": "Run",
+    "Spring Boot.UserServiceApplicaiton.executor": "Run",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/Cleaner/Cleaner/duolai-clean/user/user-service/src/main/java/com/cskaoyan/duolai/clean/user",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "MavenSettings",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\user\user-service\src\main\java\com\cskaoyan\duolai\clean\user" />
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\order\order-service\src\main\java\com\cskaoyan\duolai\clean\orders\strategy" />
+      <recent name="E:\Cleaner\Cleaner\duolai-clean\order\order-service\src\main\java\com\cskaoyan\duolai\clean\orders\consumer" />
       <recent name="E:\Cleaner\Cleaner\duolai-clean" />
       <recent name="E:\Cleaner\Cleaner\duolai-clean\order\order-service\src\main\java\com\cskaoyan\duolai\clean\orders\job" />
-      <recent name="E:\Cleaner\Cleaner\duolai-clean\framework" />
-      <recent name="E:\Cleaner\Cleaner\duolai-clean\order\order-service\src\main\java\com\cskaoyan\duolai\clean\orders\consumer" />
-      <recent name="E:\Cleaner\Cleaner\duolai-clean\housekeeping\housekeeping-service\src\main\java\com\cskaoyan\duolai\clean\housekeeping" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -222,7 +219,12 @@
       <workItem from="1755002549008" duration="38000" />
       <workItem from="1755002738624" duration="2478000" />
       <workItem from="1755046940660" duration="1244000" />
-      <workItem from="1755065854399" duration="3753000" />
+      <workItem from="1755065854399" duration="4810000" />
+      <workItem from="1755133092851" duration="2196000" />
+      <workItem from="1755151481660" duration="1602000" />
+      <workItem from="1755159129820" duration="3963000" />
+      <workItem from="1755164276445" duration="7852000" />
+      <workItem from="1755220301811" duration="12241000" />
     </task>
     <servers />
   </component>

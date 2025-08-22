@@ -127,7 +127,7 @@ public class OrderSeizeServiceImpl extends ServiceImpl<OrdersSeizeMapper, OrderS
                 // 查询当前时间距离服务预约时间间隔小于指定值
                 .le(OrderSeizeDO::getServeStartTime, maxServeStartTime)
                 //预约时间大于当前时间
-                .ge(OrderSeizeDO::getServeStartTime, DateUtils.now());
+                .gt(OrderSeizeDO::getServeStartTime, DateUtils.now());
         return baseMapper.selectList(lambdaQueryWrapper);
     }
 
@@ -135,7 +135,7 @@ public class OrderSeizeServiceImpl extends ServiceImpl<OrdersSeizeMapper, OrderS
     @Transactional(rollbackFor = Exception.class)
     public void batchTimeout(List<Long> ids) {
         lambdaUpdate()
-                .set(OrderSeizeDO::getIsTimeOut, true)
+                .set(OrderSeizeDO::getIsTimeOut, 1)
                 .in(OrderSeizeDO::getId, ids)
                 .update();
     }
@@ -144,6 +144,7 @@ public class OrderSeizeServiceImpl extends ServiceImpl<OrdersSeizeMapper, OrderS
     @Override
     public List<OrderSeizeDO> queryArriveServeStartTimeSeizeOrder() {
         return lambdaQuery()
+                .eq(OrderSeizeDO::getIsTimeOut, 0)
                 .le(OrderSeizeDO::getServeStartTime, DateUtils.now())
                 .list();
     }
@@ -338,6 +339,7 @@ public class OrderSeizeServiceImpl extends ServiceImpl<OrdersSeizeMapper, OrderS
         }
 
         // 更新用户的接单数据，等到实现派单时再来添加
+        serveProviderSyncService.countServeTimesAndAcceptanceNum(serveProviderId);
 
     }
 

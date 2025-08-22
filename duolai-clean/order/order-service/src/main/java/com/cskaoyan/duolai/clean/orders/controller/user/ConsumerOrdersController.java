@@ -104,6 +104,7 @@ public class ConsumerOrdersController {
         orderCancelDTO.setCurrentUserId(currentUserInfo.getId());
         orderCancelDTO.setCurrentUserName(currentUserInfo.getName());
         orderCancelDTO.setCurrentUserType(currentUserInfo.getUserType());
+        orderCancelDTO.setUserId(currentUserInfo.getId());
         ordersManagerService.cancel(orderCancelDTO);
     }
 }

@@ -77,6 +77,15 @@ public class ServeProviderSettingsServiceImpl extends ServiceImpl<ServeProviderS
         serveProviderSettingsDO.setLon(lon);
         baseMapper.updateById(serveProviderSettingsDO);
 
+        // 经纬度
+        ServeProviderSyncDO serveProviderSyncDO = ServeProviderSyncDO.builder()
+                .id(UserContext.currentUserId())
+                .cityCode(serveScopeCommand.getCityCode())
+                .lon(lon)
+                .lat(lat)
+                .build();
+        serveProviderSyncService.updateById(serveProviderSyncDO);
+
     }
 
     @Override
@@ -104,6 +113,13 @@ public class ServeProviderSettingsServiceImpl extends ServiceImpl<ServeProviderS
         serveProviderSettingsDO.setId(id);
         serveProviderSettingsDO.setCanPickUp(canPickUp);
         baseMapper.updateById(serveProviderSettingsDO);
+
+        // 同步es
+        ServeProviderSyncDO serveProviderSyncDO = ServeProviderSyncDO.builder().id(id)
+                .pickUp(canPickUp)
+                .build();
+        serveProviderSyncService.updateById(serveProviderSyncDO);
+
     }
 
     //返回的设置状态在前端需要使用
@@ -150,13 +166,24 @@ public class ServeProviderSettingsServiceImpl extends ServiceImpl<ServeProviderS
             certificationStatus = certificationStatusDTO.getCertificationStatus();
         }
 
+//        Integer settingsStatus = 0;
+//        Boolean serveSkillSetted = false;
+//        Boolean serveScopeSetted = false;
+//        Integer certificationStatus = -1;
 
         //认证通过，设置服务技能，设置服务范围 更新 首次设置状态为完成(settingsStatus == 0说明之前未设置完成状态)
         if (settingsStatus == 0 && serveSkillSetted && serveScopeSetted && certificationStatus == 2) {
             serveProviderService.settingStatus(currentUserId);
             settingsStatus = 1;
-        }
 
+            //插入同步表
+            ServeProviderSyncDO serveProviderSyncDO =
+                    ServeProviderSyncDO.builder()
+                            .id(currentUserId)
+                            .settingStatus(settingsStatus)
+                            .build();
+            serveProviderSyncService.updateById(serveProviderSyncDO);
+        }
 
         // 构造响应
         ServeSettingsStatusDTO serveSettingsStatusDTO = ServeSettingsStatusDTO.builder()

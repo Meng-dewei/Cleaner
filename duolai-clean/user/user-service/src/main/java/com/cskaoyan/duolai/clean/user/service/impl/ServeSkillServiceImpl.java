@@ -89,6 +89,18 @@ public class ServeSkillServiceImpl extends ServiceImpl<ServeSkillMapper, ServeSk
 
         // 3.设置技能，调用serveProviderSettingsService.setHaveSkill
         serveProviderSettingsService.setHaveSkill(currentUserInfo.getId());
+
+        // 格式化服务技能
+        List<Long> serveItemIds = serveSkillCommandList.stream()
+                .map(ServeSkillCommand::getServeItemId)
+                .collect(Collectors.toList());
+        //写入服务提供者同步表，将来由同步任务同步到ES
+        ServeProviderSyncDO serveProviderSyncDO = ServeProviderSyncDO.builder()
+                .id(UserContext.currentUserId())
+                .serveItemIds(serveItemIds)
+                .build();
+        serveProviderSyncService.updateById(serveProviderSyncDO);
+
     }
 
     /**

@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/start/index",
+    "pages/login/user",
+    "pages/index/index",
+    "pages/serviceSkill/index",
+    "pages/getOrder/index",
+    "pages/serviceRange/index",
+    "pages/city/index",
+    "pages/setting/index",
+    "pages/history/index",
+    "pages/pickup/index",
+    "pages/orderInfo/index",
+    "pages/cancel/index",
+    "pages/serveRecord/index",
+    "pages/delivery/index",
+    "pages/my/index",
+    "pages/evaluate/index",
+    "pages/account/index",
+    "pages/auth/index",
+    "pages/authFail/index"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "多来净家",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#ff3333",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/pickup/index",
+        "text": "订单",
+        "iconPath": "static/tabbar/order.png",
+        "selectedIconPath": "static/tabbar/order-active.png"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/my.png",
+        "selectedIconPath": "static/tabbar/my-active.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于选择服务范围"
+    }
+  },
+  "usingComponents": {}
+}

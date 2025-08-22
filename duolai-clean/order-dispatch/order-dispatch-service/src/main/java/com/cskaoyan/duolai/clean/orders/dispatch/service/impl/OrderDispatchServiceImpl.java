@@ -64,6 +64,39 @@ public class OrderDispatchServiceImpl extends ServiceImpl<OrdersDispatchMapper, 
 
     public void dispatch(OrderDispatchDO ordersDispatch) {
 
+        // 1.3.服务时间,格式yyyyMMddHHmm
+        Long serveTime = ServeTimeUtils.getServeTimeLong(ordersDispatch.getServeStartTime());
+        // 1.4.区域调度配置
+        ConfigRegionDTO configRegionDTO = regionApi.findConfigRegionByCityCode(ordersDispatch.getCityCode());
+        // 1.5.获取派单规则
+        DispatchStrategyEnum dispatchStrategyEnum = DispatchStrategyEnum.of(configRegionDTO.getDispatchStrategy());
+
+        // 2.获取派单人员
+        List<ServeProviderDispatchDTO> serveProvidersOfServe = searchDispatchInfo(ordersDispatch.getCityCode(),
+                ordersDispatch.getServeItemId(),
+                configRegionDTO.getStaffServeRadius(),
+                serveTime,
+                dispatchStrategyEnum,
+                ordersDispatch.getLon(),
+                ordersDispatch.getLat(),
+                configRegionDTO.getStaffReceiveOrderMax());
+        log.info("派单筛选前数据,id:{},{}",ordersDispatch.getId(), serveProvidersOfServe);
+        if (CollUtils.isEmpty(serveProvidersOfServe)) {
+            log.info("id:{}匹配不到人", ordersDispatch.getId());
+            return;
+        }
+
+        ServeProviderDispatchDTO serveProvider = serveProvidersOfServe.get(0);
+
+        // 4.机器抢单
+        OrderSeizeParam orderSeizeParam = new OrderSeizeParam();
+        // ordersDispatch.getId() 这个id表示抢单id(订单id)
+        orderSeizeParam.setSeizeId(ordersDispatch.getId());
+        orderSeizeParam.setServeProviderId(serveProvider.getId());
+        // 服务从业者
+        orderSeizeParam.setServeProviderType(2);
+
+        ordersSeizeService.seize(orderSeizeParam.getSeizeId(), orderSeizeParam.getServeProviderId(), orderSeizeParam.getServeProviderType(), true);
 
     }
 
@@ -114,7 +147,8 @@ public class OrderDispatchServiceImpl extends ServiceImpl<OrdersDispatchMapper, 
         boolQueryBuilder.filter(serveItemIdsTermQuery);
 
         // 距离条件
-        GeoDistanceQueryBuilder distanceQuery = QueryBuilders.geoDistanceQuery(FieldConstants.LOCATION).point(lat, lon)
+        GeoDistanceQueryBuilder distanceQuery = QueryBuilders.geoDistanceQuery(FieldConstants.LOCATION)
+                .point(lat, lon)
                 .distance(maxDistance, DistanceUnit.KILOMETERS);
         boolQueryBuilder.filter(distanceQuery);
 

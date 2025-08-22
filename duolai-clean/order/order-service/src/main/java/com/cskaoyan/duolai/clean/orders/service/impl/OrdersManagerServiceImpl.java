@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cskaoyan.duolai.clean.common.expcetions.CommonException;
 import com.cskaoyan.duolai.clean.common.model.dto.PageDTO;
+import com.cskaoyan.duolai.clean.common.utils.JsonUtils;
 import com.cskaoyan.duolai.clean.common.utils.ObjectUtils;
 import com.cskaoyan.duolai.clean.market.request.CouponUseBackParam;
 import com.cskaoyan.duolai.clean.mvc.utils.UserContext;
@@ -32,6 +33,7 @@ import com.cskaoyan.duolai.clean.mysql.utils.PageUtils;
 import com.cskaoyan.duolai.clean.orders.config.OrderStateMachine;
 import com.cskaoyan.duolai.clean.orders.model.mapper.OrdersMapper;
 import com.cskaoyan.duolai.clean.orders.model.dto.OrderSnapshotDTO;
+import com.cskaoyan.duolai.clean.orders.strategy.OrderCancelStrategyManager;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +88,9 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
 
     @Autowired
     CouponApi couponApi;
+
+    @Autowired
+    OrderCancelStrategyManager orderCancelStrategyManager;
 
     /**
      * 管理端 - 分页查询订单列表
@@ -176,27 +181,32 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
     @Override
     @Transactional
     public void orderSeizeSuccess(Long id) {
-        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder().id(id)
-                .originStatus(OrderStatusEnum.DISPATCHING.getStatus())
-                .targetStatus(OrderStatusEnum.NO_SERVE.getStatus())
-                .build();
-
-        // 更新订单状态
-        int result = ordersCommonService.updateStatus(orderUpdateDTO);
-        if (result <= 0) {
-            throw new DbRuntimeException("待服务订单关闭事件处理失败");
-        }
+//        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder().id(id)
+//                .originStatus(OrderStatusEnum.DISPATCHING.getStatus())
+//                .targetStatus(OrderStatusEnum.NO_SERVE.getStatus())
+//                .build();
+//
+//        // 更新订单状态
+//        int result = ordersCommonService.updateStatus(orderUpdateDTO);
+//        if (result <= 0) {
+//            throw new DbRuntimeException("待服务订单关闭事件处理失败");
+//        }
+        // 抢单成功只需要修改订单状态即可，不需要在订单快照中保存其他额外信息
+        orderStateMachine.changeStatus(String.valueOf(id), OrderStatusChangeEventEnum.DISPATCH, null);
     }
 
     @Override
     public void orderServeStart(Long id) {
-
+        // 服务开始时只需要修改订单状态即可，不需要在订单快照中保存其他额外信息
+        orderStateMachine.changeStatus(String.valueOf(id), OrderStatusChangeEventEnum.START_SERVE, null);
     }
 
 
     @Override
     public void orderServeFinish(Long id, LocalDateTime localDateTime) {
-
+        // 服务完成时，也需要记录一下服务完成时间，所以构造了一个新的快照订单
+        OrderSnapshotDTO snapshotDTO = OrderSnapshotDTO.builder().realServeEndTime(localDateTime).build();
+        orderStateMachine.changeStatus(String.valueOf(id), OrderStatusChangeEventEnum.COMPLETE_SERVE, snapshotDTO);
     }
 
     /**
@@ -207,34 +217,39 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
      */
     @Override
     public OrderInfoDTO getDetail(Long id) {
-        OrdersDO ordersDO = ordersMapper.selectById(id);
+        // 获取缓存中的订单最新的快照数据
+        String currentSnapshotJson = orderStateMachine.getCurrentSnapshotCache(id.toString());
+        OrderSnapshotDTO orderSnapshotDTO = JsonUtils.toBean(currentSnapshotJson, OrderSnapshotDTO.class);
+
         //如果支付过期则取消订单
-        if (ObjectUtils.equals(ordersDO.getPayStatus(), OrderStatusEnum.NO_PAY.getStatus())) {
-            ordersDO = cancelIfPayOvertime(ordersDO);
+        if (ObjectUtils.equals(orderSnapshotDTO.getPayStatus(), OrderStatusEnum.NO_PAY.getStatus())) {
+            orderSnapshotDTO = cancelIfPayOvertime(orderSnapshotDTO);
         }
-        OrderInfoDTO orderInfoDTO = orderConverter.orderDOToOrderInfoDTO(ordersDO);
-        return orderInfoDTO;
+
+        return orderConverter.orderSnapshotDTOtoOrderDTO(orderSnapshotDTO);
     }
 
-    private OrdersDO cancelIfPayOvertime(OrdersDO order){
+    private OrderSnapshotDTO cancelIfPayOvertime(OrderSnapshotDTO orderSnapshotDTO) {
         //创建订单未支付15分钟后自动取消
-        if(order.getOrdersStatus() == OrderStatusEnum.NO_PAY.getStatus() && order.getCreateTime().plusMinutes(15).isBefore(LocalDateTime.now())){
+        if (orderSnapshotDTO.getCreateTime().plusMinutes(15).isBefore(LocalDateTime.now())
+                && orderSnapshotDTO.getPayStatus() == OrderPayStatusEnum.NO_PAY.getStatus()) {
             //查询支付结果，如果支付最新状态仍是未支付进行取消订单
-            Integer payResultFromTradServer = ordersCreateService.getPayResult(order.getId());
-            if (ObjectUtil.notEqual(payResultFromTradServer, OrderPayStatusEnum.PAY_SUCCESS.getStatus())) {
+            int payResultFromTradServer = ordersCreateService.getPayResult(orderSnapshotDTO.getId());
+            if (payResultFromTradServer != OrderPayStatusEnum.PAY_SUCCESS.getStatus()) {
                 //取消订单
-                OrderCancelDTO orderCancelDTO = orderConverter.orderDOToOrderCancelDTO(order);
+                OrderCancelDTO orderCancelDTO = orderConverter.orderSnapshotDTOtoCancelDTO(orderSnapshotDTO);
                 orderCancelDTO.setCurrentUserType(UserType.SYSTEM);
                 orderCancelDTO.setCancelReason("订单超时支付，自动取消");
-                // 调用cancel方法取消订单
-                cancel(orderCancelDTO);
-
-                // 如果取消订单，则查询新的订单信息
-                order = getById(order.getId());
-                return order;
+                owner.cancel(orderCancelDTO);
             }
+
+            //从快照中查询订单数据
+            String jsonResult = orderStateMachine.getCurrentSnapshotCache(String.valueOf(orderSnapshotDTO.getId()));
+            orderSnapshotDTO = JSONUtil.toBean(jsonResult, OrderSnapshotDTO.class);
+            return orderSnapshotDTO;
         }
-        return getById(order.getId());
+        return orderSnapshotDTO;
+
     }
 
 
@@ -250,30 +265,35 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         orderCancelDTO.setCityCode(ordersDO.getCityCode());
         orderCancelDTO.setRealPayAmount(ordersDO.getRealPayAmount());
         orderCancelDTO.setTradingOrderNo(ordersDO.getTradingOrderNo());
-        orderCancelDTO.setUserId(ordersDO.getUserId());
+//        orderCancelDTO.setUserId(ordersDO.getUserId());
+
+        orderCancelDTO.setServeStartTime(ordersDO.getServeStartTime());
+
         //订单状态
         Integer ordersStatus = ordersDO.getOrdersStatus();
 
         BigDecimal discountAmount = ordersDO.getDiscountAmount();
 
-        if (discountAmount.doubleValue() > 0) {
-            // 使用了优惠卷，那么需要退回优惠卷
-            CouponUseBackParam couponUseBackCommand = new CouponUseBackParam();
-            couponUseBackCommand.setUserId(orderCancelDTO.getUserId());
-            couponUseBackCommand.setOrdersId(orderCancelDTO.getId());
-            // 调用营销服务
-            couponApi.useBack(couponUseBackCommand);
-        }
-
-        if (OrderStatusEnum.NO_PAY.getStatus().equals(ordersStatus)) { //订单状态为待支付
-            owner.cancelByNoPay(orderCancelDTO);
-            return;
-        }
-
-        if (OrderStatusEnum.DISPATCHING.getStatus().equals(ordersStatus)) { //订单状态为待服务
-            owner.cancelByDispatching(orderCancelDTO);
-            return;
-        }
+//        if (discountAmount.doubleValue() > 0) {
+//            // 使用了优惠卷，那么需要退回优惠卷
+//            CouponUseBackParam couponUseBackCommand = new CouponUseBackParam();
+//            couponUseBackCommand.setUserId(orderCancelDTO.getUserId());
+//            couponUseBackCommand.setOrdersId(orderCancelDTO.getId());
+//            // 调用营销服务
+//            couponApi.useBack(couponUseBackCommand);
+//        }
+//
+//        if (OrderStatusEnum.NO_PAY.getStatus().equals(ordersStatus)) { //订单状态为待支付
+//            owner.cancelByNoPay(orderCancelDTO);
+//            return;
+//        }
+//
+//        if (OrderStatusEnum.DISPATCHING.getStatus().equals(ordersStatus)) { //订单状态为待服务
+//            owner.cancelByDispatching(orderCancelDTO);
+//            return;
+//        }
+//
+        orderCancelStrategyManager.cancel(orderCancelDTO, ordersStatus, discountAmount);
 
         throw new CommonException("当前订单状态不支持取消");
     }
@@ -290,18 +310,31 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         // 保存订单取消记录
         ordersCanceledService.save(ordersCanceledDO);
 
-        //更新订单状态为取消订单
-        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder()
-                .id(orderCancelDTO.getId())
-                .originStatus(OrderStatusEnum.NO_PAY.getStatus())
-                .targetStatus(OrderStatusEnum.CANCELED.getStatus())
+//        //更新订单状态为取消订单
+//        OrderUpdateDTO orderUpdateDTO = OrderUpdateDTO.builder()
+//                .id(orderCancelDTO.getId())
+//                .originStatus(OrderStatusEnum.NO_PAY.getStatus())
+//                .targetStatus(OrderStatusEnum.CANCELED.getStatus())
+//                .build();
+//
+//        // 更新订单状态
+//        int result = ordersCommonService.updateStatus(orderUpdateDTO);
+//        if (result <= 0) {
+//            throw new DbRuntimeException("订单取消事件处理失败");
+//        }
+
+        //构建订单快照更新模型
+        OrderSnapshotDTO orderSnapshotDTO = OrderSnapshotDTO.builder()
+                .cancellerId(orderCancelDTO.getCurrentUserId())
+                .cancelerName(orderCancelDTO.getCurrentUserName())
+                .cancellerType(orderCancelDTO.getCurrentUserType())
+                .cancelReason(orderCancelDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
                 .build();
 
-        // 更新订单状态
-        int result = ordersCommonService.updateStatus(orderUpdateDTO);
-        if (result <= 0) {
-            throw new DbRuntimeException("订单取消事件处理失败");
-        }
+        //订单状态变更
+        orderStateMachine.changeStatus( orderCancelDTO.getId().toString(), OrderStatusChangeEventEnum.CANCEL, orderSnapshotDTO);
+
 
     }
 
@@ -329,6 +362,18 @@ public class OrdersManagerServiceImpl extends ServiceImpl<OrdersMapper, OrdersDO
         if (result <= 0) {
             throw new DbRuntimeException("待服务订单关闭事件处理失败");
         }
+
+        // 保存取消订单记录
+        OrderSnapshotDTO orderSnapshotDTO = OrderSnapshotDTO.builder()
+                .cancellerId(orderCancelDTO.getCurrentUserId())
+                .cancelerName(orderCancelDTO.getCurrentUserName())
+                .cancellerType(orderCancelDTO.getCurrentUserType())
+                .cancelReason(orderCancelDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+
+        //订单状态变更
+        orderStateMachine.changeStatus( orderCancelDTO.getId().toString(), OrderStatusChangeEventEnum.CLOSE_DISPATCHING_ORDER, orderSnapshotDTO);
 
         //添加退款记录
         OrdersRefundDO ordersRefundDO = new OrdersRefundDO();

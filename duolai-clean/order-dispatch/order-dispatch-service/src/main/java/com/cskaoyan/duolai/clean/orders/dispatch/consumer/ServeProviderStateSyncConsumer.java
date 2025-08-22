@@ -103,7 +103,36 @@ public class ServeProviderStateSyncConsumer extends AbstractCanalRocketHandler<S
 
     @Override
     public void batchSave(List<ServeProviderSyncDO> data) {
+        // 1.同步es
+        data.forEach(serveProviderSyncDO -> {
 
+            UpdateQuery updateQuery = UpdateQuery.builder(serveProviderSyncDO.getId().toString())
+                    .withDocument(Document.parse(JSON.toJSONString(serveProviderSyncDO))) // 使用文档部分更新
+                    .build();
+
+            // 增量修改
+            elasticsearchTemplate.update(updateQuery, IndexCoordinates.of(EsIndex.SERVE_PROVIDER_INFO));
+
+            // 同步redis中的时间
+            Long providerId = serveProviderSyncDO.getId();
+            String serveProviderTimeRedisKey = String.format(RedisConstants.RedisKey.SERVE_PROVIDER_TIME, providerId.toString());
+            RSet<String> set = redissonClient.getSet(serveProviderTimeRedisKey, StringCodec.INSTANCE);
+
+
+            // 找到可能取消的服务时间
+            List<String> toDeleteServeTime = set.stream()
+                    .filter(serveTimeStr -> !serveProviderSyncDO.getServeTimes().contains(Long.parseLong(serveTimeStr)))
+                    .collect(Collectors.toList());
+            // 删除缓存中待删除的服务时间
+            set.removeAll(toDeleteServeTime);
+
+
+            // 同步接单数
+            ServeProviderInfoDTO detail = serveProviderApi.getDetail(serveProviderSyncDO.getId());
+            String serveProviderAcceptNumRedisKey = String.format(RedisConstants.RedisKey.SERVE_PROVIDER_ACCEPT_NUM, detail.getCityCode());
+            redissonClient.getMap(serveProviderAcceptNumRedisKey, StringCodec.INSTANCE)
+                    .put(providerId.toString(), serveProviderSyncDO.getAcceptanceNum());
+        });
     }
 
     @Override
